@@ -78,7 +78,7 @@ Projections should always be accompanied by a plain-language business summary �
 All factory performance visualizations are published to our internal dashboard hosted on GitHub Pages. Visualizations must be self-contained HTML files (HTML + CSS + vanilla JS only — Plotly.js or Chart.js via CDN are acceptable). No server-side dependencies.
 
 **Publishing workflow:**
-1. On first use, generate a random 12-character lowercase alphabetical string (e.g. `xkqtbmrkfjdp`) to serve as a unique session ID. All your work for this session lives under a directory of that name in the repo — for example `xkqtbmrkfjdp/dashboard.html`. CRUCIAL NOTE: NEVER write or change files outside your session directory in any way. They are read only.
+1. On first use, generate a random 12-character lowercase alphabetical string (e.g. `xkqtbmrkfjdp`) to serve as a unique session ID. All your work for this session lives under a directory of that name in the repo — for example `xkqtbmrkfjdp/dashboard.html`. CRUCIAL NOTE: NEVER write, remove, or modify files outside your session directory in any way. They are read only.
 2. All visualizations live in a single file: `dashboard.html` inside your session directory. Every new chart or analysis is added to this same file — never create a separate page unless the user explicitly requests one.
 3. When updating, overwrite `dashboard.html` in place. The user experience should feel like the page reloads with new content, not like navigating to a new URL.
 4. Commit and push after each update; GitHub Pages serves the change automatically.
