@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Factory Transfer Simulator — Interactive Dashboard</title>
+<title>🐱 Factory Transfer Simulator — Interactive Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -49,7 +49,7 @@ td { padding:8px 10px; border-bottom:1px solid #f1f5f9; }
 </style>
 </head>
 <body>
-<h1>🏭 Interactive Factory Transfer Simulator</h1>
+<h1>🐱 Interactive Factory Transfer Simulator</h1>
 <p class="subtitle">Drag the slider to explore how transferring workers between factories affects fulfillment · 6-month projection</p>
 
 <!-- Control Panel -->
@@ -180,6 +180,26 @@ function getZone(pct) {
   return { text: '🔴 Critical', cls: 'critical', badge: 'zone-critical' };
 }
 
+
+// Zone-based coloring helpers
+const ZONE_RED = '#dc2626';
+const ZONE_YELLOW = '#f59e0b';
+const ZONE_GREEN = '#16a34a';
+
+function zoneColor(val) {
+  if (val >= 85) return ZONE_GREEN;
+  if (val >= 70) return ZONE_YELLOW;
+  return ZONE_RED;
+}
+function ptColor(val) { return zoneColor(val); }
+function segColor(ctx, key) {
+  const p0 = ctx.p0.parsed.y;
+  const p1 = ctx.p1.parsed.y;
+  // Use the color of the worse endpoint so danger is visible
+  const worst = Math.min(p0, p1);
+  return zoneColor(worst);
+}
+
 // Charts
 let germanyChart, asiaChart, combinedChart;
 
@@ -194,7 +214,7 @@ function initCharts() {
   germanyChart = new Chart(document.getElementById('germanyChart').getContext('2d'), {
     type: 'line',
     data: { labels: MONTHS, datasets: [
-      { label: 'Projected', data: [], borderColor: '#2563eb', borderWidth: 2.5, pointRadius: 4, tension: 0.3 },
+      { label: 'Projected', data: [], borderWidth: 2.5, pointRadius: 5, tension: 0.3, segment: { borderColor: function(ctx) { return segColor(ctx, 'de'); } }, pointBackgroundColor: function(ctx) { return ptColor(ctx.parsed ? ctx.parsed.y : 0); }, borderColor: '#2563eb' },
       { label: '70% Target', data: Array(6).fill(70), borderColor: '#dc2626', borderWidth: 1.5, borderDash: [8,4], pointRadius: 0 },
       { label: '85% On Track', data: Array(6).fill(85), borderColor: '#16a34a', borderWidth: 1.5, borderDash: [8,4], pointRadius: 0 }
     ]},
@@ -204,7 +224,7 @@ function initCharts() {
   asiaChart = new Chart(document.getElementById('asiaChart').getContext('2d'), {
     type: 'line',
     data: { labels: MONTHS, datasets: [
-      { label: 'Projected', data: [], borderColor: '#ea580c', borderWidth: 2.5, pointRadius: 4, tension: 0.3 },
+      { label: 'Projected', data: [], borderWidth: 2.5, pointRadius: 5, tension: 0.3, segment: { borderColor: function(ctx) { return segColor(ctx, 'asia'); } }, pointBackgroundColor: function(ctx) { return ptColor(ctx.parsed ? ctx.parsed.y : 0); }, borderColor: '#ea580c' },
       { label: '70% Target', data: Array(6).fill(70), borderColor: '#dc2626', borderWidth: 1.5, borderDash: [8,4], pointRadius: 0 },
       { label: '85% On Track', data: Array(6).fill(85), borderColor: '#16a34a', borderWidth: 1.5, borderDash: [8,4], pointRadius: 0 }
     ]},
@@ -214,8 +234,8 @@ function initCharts() {
   combinedChart = new Chart(document.getElementById('combinedChart').getContext('2d'), {
     type: 'line',
     data: { labels: MONTHS, datasets: [
-      { label: 'Germany', data: [], borderColor: '#2563eb', borderWidth: 2.5, pointRadius: 4, tension: 0.3 },
-      { label: 'Asia', data: [], borderColor: '#ea580c', borderWidth: 2.5, pointRadius: 4, tension: 0.3 },
+      { label: 'Germany', data: [], borderWidth: 2.5, pointRadius: 5, tension: 0.3, segment: { borderColor: function(ctx) { return segColor(ctx, 'combDe'); } }, pointBackgroundColor: function(ctx) { return ptColor(ctx.parsed ? ctx.parsed.y : 0); }, borderColor: '#2563eb' },
+      { label: 'Asia', data: [], borderWidth: 2.5, pointRadius: 5, tension: 0.3, segment: { borderColor: function(ctx) { return segColor(ctx, 'combAsia'); } }, pointBackgroundColor: function(ctx) { return ptColor(ctx.parsed ? ctx.parsed.y : 0); }, borderColor: '#ea580c' },
       { label: '70% Target', data: Array(6).fill(70), borderColor: '#dc2626', borderWidth: 1.5, borderDash: [8,4], pointRadius: 0 },
       { label: '85% On Track', data: Array(6).fill(85), borderColor: '#16a34a', borderWidth: 1.5, borderDash: [8,4], pointRadius: 0 }
     ]},
