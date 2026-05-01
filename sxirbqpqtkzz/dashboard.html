@@ -36,10 +36,16 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 
 table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
 th, td { padding: 0.4rem 0.5rem; text-align: center; border-bottom: 1px solid #eee; }
 th { background: #f9fafb; font-weight: 600; }
+.zone-green { color: #16a34a; font-weight: 600; }
+.zone-yellow { color: #ca8a04; font-weight: 600; }
+.zone-red { color: #dc2626; font-weight: 600; }
 .alert { padding: 0.75rem 1rem; border-radius: 6px; margin-bottom: 1rem; font-size: 0.9rem; border-left: 4px solid; }
 .alert-green { background: #f0fdf4; border-left-color: #16a34a; color: #166534; }
 .alert-yellow { background: #fefce8; border-left-color: #eab308; color: #854d0e; }
 .alert-red { background: #fef2f2; border-left-color: #dc2626; color: #991b1b; }
+.legend-custom { display: flex; gap: 1.2rem; justify-content: center; margin-top: 0.75rem; flex-wrap: wrap; font-size: 0.8rem; }
+.legend-item { display: flex; align-items: center; gap: 0.3rem; }
+.legend-swatch { width: 14px; height: 14px; border-radius: 3px; }
 </style>
 </head>
 <body>
@@ -86,10 +92,20 @@ th { background: #f9fafb; font-weight: 600; }
 <div class="card">
 <h2>🇩🇪 Germany Factory (Factory A)</h2>
 <div class="chart-container"><canvas id="chartGermany"></canvas></div>
+<div class="legend-custom">
+<div class="legend-item"><div class="legend-swatch" style="background:#16a34a;"></div> ≥85% On Track</div>
+<div class="legend-item"><div class="legend-swatch" style="background:#eab308;"></div> 70–84% At Risk</div>
+<div class="legend-item"><div class="legend-swatch" style="background:#dc2626;"></div> <70% Critical</div>
+</div>
 </div>
 <div class="card">
 <h2>🌏 Asia Factory (Factory B)</h2>
 <div class="chart-container"><canvas id="chartAsia"></canvas></div>
+<div class="legend-custom">
+<div class="legend-item"><div class="legend-swatch" style="background:#16a34a;"></div> ≥85% On Track</div>
+<div class="legend-item"><div class="legend-swatch" style="background:#eab308;"></div> 70–84% At Risk</div>
+<div class="legend-item"><div class="legend-swatch" style="background:#dc2626;"></div> <70% Critical</div>
+</div>
 </div>
 </div>
 
@@ -133,13 +149,24 @@ function predict(model, n, w1, w2, t) {
 }
 
 function getZone(val) {
-  if (val >= 85) return { text: '🟢 On Track', cls: 'zone-green', tag: 'tag-green' };
-  if (val >= 70) return { text: '🟡 At Risk', cls: 'zone-yellow', tag: 'tag-yellow' };
-  return { text: '🔴 Critical', cls: 'zone-red', tag: 'tag-red' };
+  if (val >= 85) return { text: '\u{1F7E2} On Track', cls: 'zone-green', tag: 'tag-green' };
+  if (val >= 70) return { text: '\u{1F7E1} At Risk', cls: 'zone-yellow', tag: 'tag-yellow' };
+  return { text: '\u{1F534} Critical', cls: 'zone-red', tag: 'tag-red' };
+}
+
+function getColor(val) {
+  if (val >= 85) return '#16a34a';
+  if (val >= 70) return '#eab308';
+  return '#dc2626';
+}
+
+function getBgColor(val) {
+  if (val >= 85) return 'rgba(22,163,74,0.12)';
+  if (val >= 70) return 'rgba(234,179,8,0.12)';
+  return 'rgba(220,38,38,0.12)';
 }
 
 function simulate(transfer) {
-  // Positive = Asia -> Germany, Negative = Germany -> Asia
   const resultsA = [];
   const resultsB = [];
 
@@ -147,7 +174,6 @@ function simulate(transfer) {
   let b_new = stateB.new, b_1mo = stateB.w1mo, b_2mo = stateB.w2mo, b_ten = stateB.ten;
 
   for (let i = 0; i < 6; i++) {
-    // Age cohorts
     let na_ten = a_ten + a_2mo;
     let na_2mo = a_1mo;
     let na_1mo = a_new;
@@ -160,17 +186,14 @@ function simulate(transfer) {
 
     if (i === 0) {
       if (transfer > 0) {
-        // Asia -> Germany: remove from Asia tenured, add as Germany new hires
         na_new = transfer;
         nb_ten = nb_ten - transfer;
       } else if (transfer < 0) {
-        // Germany -> Asia: remove from Germany tenured, add as Asia new hires
         nb_new = -transfer;
         na_ten = na_ten - (-transfer);
       }
     }
 
-    // Clamp to avoid negatives
     if (na_ten < 0) na_ten = 0;
     if (nb_ten < 0) nb_ten = 0;
 
@@ -188,7 +211,25 @@ function simulate(transfer) {
   return { a: resultsA, b: resultsB };
 }
 
+// Custom plugin for segment coloring
+const segmentColorPlugin = {
+  id: 'segmentColor',
+  beforeDraw: function() {}
+};
+
 let chartGermany, chartAsia;
+
+function createSegmentColor(data) {
+  return function(ctx) {
+    const idx = ctx.p1DataIndex;
+    const val = data[idx];
+    return getColor(val);
+  };
+}
+
+function createPointColors(data) {
+  return data.map(v => getColor(v));
+}
 
 function initCharts() {
   const ctxA = document.getElementById('chartGermany').getContext('2d');
@@ -199,12 +240,28 @@ function initCharts() {
     data: {
       labels: months,
       datasets: [
-        { label: 'Germany Fulfillment', data: [], borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.08)', fill: true, tension: 0.3, pointRadius: 5, borderWidth: 3 },
-        { label: '70% Threshold', data: [70,70,70,70,70,70], borderColor: '#dc2626', borderDash: [4,4], borderWidth: 2, pointRadius: 0, fill: false },
-        { label: '85% On-Track', data: [85,85,85,85,85,85], borderColor: '#16a34a', borderDash: [4,4], borderWidth: 2, pointRadius: 0, fill: false }
+        {
+          label: 'Germany Fulfillment',
+          data: [],
+          borderColor: '#dc2626',
+          backgroundColor: 'rgba(220,38,38,0.08)',
+          segment: { borderColor: function(ctx) { return getColor(ctx.chart.data.datasets[0].data[ctx.p1DataIndex]); } },
+          pointBackgroundColor: [],
+          pointBorderColor: [],
+          fill: false,
+          tension: 0.3,
+          pointRadius: 6,
+          borderWidth: 3
+        },
+        { label: '70% Threshold', data: [70,70,70,70,70,70], borderColor: 'rgba(220,38,38,0.4)', borderDash: [4,4], borderWidth: 1.5, pointRadius: 0, fill: false },
+        { label: '85% On-Track', data: [85,85,85,85,85,85], borderColor: 'rgba(22,163,74,0.4)', borderDash: [4,4], borderWidth: 1.5, pointRadius: 0, fill: false }
       ]
     },
-    options: { responsive: true, maintainAspectRatio: false, animation: { duration: 300 }, plugins: { legend: { position: 'bottom' } }, scales: { y: { min: 40, max: 100, title: { display: true, text: 'Fulfillment %' } } } }
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: { duration: 300 },
+      plugins: { legend: { display: false } },
+      scales: { y: { min: 40, max: 100, title: { display: true, text: 'Fulfillment %' } } }
+    }
   });
 
   chartAsia = new Chart(ctxB, {
@@ -212,25 +269,49 @@ function initCharts() {
     data: {
       labels: months,
       datasets: [
-        { label: 'Asia Fulfillment', data: [], borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.08)', fill: true, tension: 0.3, pointRadius: 5, borderWidth: 3 },
-        { label: '70% Threshold', data: [70,70,70,70,70,70], borderColor: '#dc2626', borderDash: [4,4], borderWidth: 2, pointRadius: 0, fill: false },
-        { label: '85% On-Track', data: [85,85,85,85,85,85], borderColor: '#16a34a', borderDash: [4,4], borderWidth: 2, pointRadius: 0, fill: false }
+        {
+          label: 'Asia Fulfillment',
+          data: [],
+          borderColor: '#dc2626',
+          backgroundColor: 'rgba(220,38,38,0.08)',
+          segment: { borderColor: function(ctx) { return getColor(ctx.chart.data.datasets[0].data[ctx.p1DataIndex]); } },
+          pointBackgroundColor: [],
+          pointBorderColor: [],
+          fill: false,
+          tension: 0.3,
+          pointRadius: 6,
+          borderWidth: 3
+        },
+        { label: '70% Threshold', data: [70,70,70,70,70,70], borderColor: 'rgba(220,38,38,0.4)', borderDash: [4,4], borderWidth: 1.5, pointRadius: 0, fill: false },
+        { label: '85% On-Track', data: [85,85,85,85,85,85], borderColor: 'rgba(22,163,74,0.4)', borderDash: [4,4], borderWidth: 1.5, pointRadius: 0, fill: false }
       ]
     },
-    options: { responsive: true, maintainAspectRatio: false, animation: { duration: 300 }, plugins: { legend: { position: 'bottom' } }, scales: { y: { min: 30, max: 100, title: { display: true, text: 'Fulfillment %' } } } }
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: { duration: 300 },
+      plugins: { legend: { display: false } },
+      scales: { y: { min: 30, max: 100, title: { display: true, text: 'Fulfillment %' } } }
+    }
   });
 }
 
 function updateUI(transfer) {
   const { a, b } = simulate(transfer);
 
-  // Update charts
-  chartGermany.data.datasets[0].data = a.map(r => Math.round(r.fulf * 100) / 100);
+  const dataA = a.map(r => Math.round(r.fulf * 100) / 100);
+  const dataB = b.map(r => Math.round(r.fulf * 100) / 100);
+
+  // Update chart data and point colors
+  chartGermany.data.datasets[0].data = dataA;
+  chartGermany.data.datasets[0].pointBackgroundColor = dataA.map(v => getColor(v));
+  chartGermany.data.datasets[0].pointBorderColor = dataA.map(v => getColor(v));
   chartGermany.update();
-  chartAsia.data.datasets[0].data = b.map(r => Math.round(r.fulf * 100) / 100);
+
+  chartAsia.data.datasets[0].data = dataB;
+  chartAsia.data.datasets[0].pointBackgroundColor = dataB.map(v => getColor(v));
+  chartAsia.data.datasets[0].pointBorderColor = dataB.map(v => getColor(v));
   chartAsia.update();
 
-  // Update KPIs (use plateau = last month)
+  // Update KPIs
   const plateauA = a[5].fulf;
   const plateauB = b[5].fulf;
   const zoneA = getZone(plateauA);
@@ -246,32 +327,30 @@ function updateUI(transfer) {
   document.getElementById('kpiAsiaZone').textContent = zoneB.text;
   document.getElementById('kpiAsiaZone').className = 'tag ' + zoneB.tag;
 
-  // Update slider display
+  // Slider display
   const absVal = Math.abs(transfer);
-  let valText = transfer.toString();
-  if (transfer > 0) valText = '+' + transfer + ' →🇩🇪';
-  else if (transfer < 0) valText = '+' + absVal + ' →🌏';
-  else valText = '0';
+  let valText = '0';
+  if (transfer > 0) valText = '+' + transfer + ' \u2192\u{1F1E9}\u{1F1EA}';
+  else if (transfer < 0) valText = '+' + absVal + ' \u2192\u{1F30F}';
   document.getElementById('sliderValue').textContent = valText;
 
-  // Direction note
   const dirNote = document.getElementById('directionNote');
-  if (transfer > 0) dirNote.textContent = transfer + ' workers: Asia → Germany';
-  else if (transfer < 0) dirNote.textContent = absVal + ' workers: Germany → Asia';
+  if (transfer > 0) dirNote.textContent = transfer + ' workers: Asia \u2192 Germany';
+  else if (transfer < 0) dirNote.textContent = absVal + ' workers: Germany \u2192 Asia';
   else dirNote.textContent = 'No transfer';
 
-  // Alert box
+  // Alert
   const alertBox = document.getElementById('alertBox');
   if (plateauA >= 70 && plateauB >= 70) {
     alertBox.className = 'alert alert-green';
-    alertBox.innerHTML = '<strong>✅ Both factories above 70%!</strong> This transfer level keeps both factories at or above the minimum fulfillment threshold.';
+    alertBox.innerHTML = '<strong>\u2705 Both factories above 70%!</strong> This transfer level keeps both factories at or above the minimum fulfillment threshold.';
   } else if (plateauA >= 70 || plateauB >= 70) {
     const bad = plateauA < 70 ? 'Germany' : 'Asia';
     alertBox.className = 'alert alert-yellow';
-    alertBox.innerHTML = '<strong>⚠️ ' + bad + ' is below 70%.</strong> One factory benefits but the other suffers. Consider adjusting the transfer amount.';
+    alertBox.innerHTML = '<strong>\u26A0\uFE0F ' + bad + ' is below 70%.</strong> One factory benefits but the other suffers. Consider adjusting the transfer amount.';
   } else {
     alertBox.className = 'alert alert-red';
-    alertBox.innerHTML = '<strong>🔴 Both factories below 70%.</strong> Neither factory meets the minimum threshold at this configuration.';
+    alertBox.innerHTML = '<strong>\u{1F534} Both factories below 70%.</strong> Neither factory meets the minimum threshold at this configuration.';
   }
 
   // Tables
@@ -290,7 +369,6 @@ function updateUI(transfer) {
 initCharts();
 updateUI(0);
 
-// Slider event
 document.getElementById('transferSlider').addEventListener('input', function() {
   updateUI(parseInt(this.value));
 });
