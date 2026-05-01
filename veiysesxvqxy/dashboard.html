@@ -3,264 +3,243 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Factory A (Germany) - Delivery Performance Analysis</title>
+    <title>Factory Transfer Scenario — Germany &amp; Asia Impact Analysis</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f7fa; color: #333; padding: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        h1 { text-align: center; margin-bottom: 10px; color: #1a1a2e; }
-        .subtitle { text-align: center; color: #666; margin-bottom: 30px; font-size: 0.95rem; }
+        .container { max-width: 1300px; margin: 0 auto; }
+        h1 { text-align: center; margin-bottom: 6px; color: #1a1a2e; font-size: 1.6rem; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 30px; font-size: 0.9rem; }
         .card { background: white; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
-        .card h2 { margin-bottom: 16px; color: #1a1a2e; font-size: 1.2rem; }
-        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
-        .metric-box { background: #f8f9fc; border-radius: 8px; padding: 16px; text-align: center; }
-        .metric-box .value { font-size: 1.8rem; font-weight: 700; }
-        .metric-box .label { font-size: 0.85rem; color: #666; margin-top: 4px; }
+        .card h2 { margin-bottom: 16px; color: #1a1a2e; font-size: 1.15rem; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .metric-box { background: #f8f9fc; border-radius: 8px; padding: 14px; text-align: center; }
+        .metric-box .value { font-size: 1.5rem; font-weight: 700; }
+        .metric-box .label { font-size: 0.78rem; color: #666; margin-top: 3px; }
         .critical { color: #dc3545; }
-        .at-risk { color: #ffc107; }
+        .at-risk { color: #e67e22; }
         .on-track { color: #28a745; }
-        .chart-container { position: relative; height: 350px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-        th, td { padding: 10px 12px; text-align: center; border-bottom: 1px solid #eee; }
-        th { background: #f8f9fc; font-weight: 600; font-size: 0.85rem; color: #555; }
-        td { font-size: 0.9rem; }
-        .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+        .chart-container { position: relative; height: 300px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
+        th, td { padding: 8px 10px; text-align: center; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fc; font-weight: 600; color: #555; }
+        .badge { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 0.72rem; font-weight: 600; }
         .badge-critical { background: #ffeef0; color: #dc3545; }
-        .badge-atrisk { background: #fff8e1; color: #f57c00; }
+        .badge-atrisk { background: #fff8e1; color: #e67e22; }
         .badge-ontrack { background: #e8f5e9; color: #28a745; }
-        .summary-box { background: #fff3cd; border-left: 4px solid #ffc107; padding: 16px; border-radius: 0 8px 8px 0; margin-top: 16px; }
-        .summary-box.critical-bg { background: #f8d7da; border-left-color: #dc3545; }
-        .formula { background: #f0f4ff; padding: 12px 16px; border-radius: 8px; font-family: monospace; font-size: 0.9rem; margin: 12px 0; overflow-x: auto; }
+        .summary-box { padding: 16px; border-radius: 0 8px 8px 0; margin-top: 16px; font-size: 0.9rem; }
+        .summary-warn { background: #fff3cd; border-left: 4px solid #ffc107; }
+        .summary-danger { background: #f8d7da; border-left: 4px solid #dc3545; }
+        .summary-info { background: #e3f2fd; border-left: 4px solid #2196f3; }
+        .arrow { font-size: 1.2rem; }
+        .scenario-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding: 16px; background: #f0f4ff; border-radius: 10px; }
+        .scenario-header .icon { font-size: 2rem; }
+        .scenario-header .text h3 { font-size: 1rem; color: #1a1a2e; }
+        .scenario-header .text p { font-size: 0.85rem; color: #555; margin-top: 2px; }
     </style>
 </head>
 <body>
 <div class="container">
-    <h1>Factory A (Germany) &mdash; Delivery Performance Dashboard</h1>
-    <p class="subtitle">Headcount &amp; Fulfillment Analysis | Data: May 2024 &ndash; April 2026 | Generated May 2026</p>
+    <h1>Transfer Scenario: Move 50 Workers from Asia → Germany</h1>
+    <p class="subtitle">Impact on both factories over 6 months | Baseline vs Transfer comparison | May–Oct 2026</p>
+
+    <div class="scenario-header">
+        <div class="icon">🔄</div>
+        <div class="text">
+            <h3>Scenario: Reallocate 50 tenured workers from Factory B (Asia) to Factory A (Germany)</h3>
+            <p>Transferred workers modeled as new hires at Germany (need AA1 product line training). Removed from Asia tenured pool immediately. Combined headcount remains 450.</p>
+        </div>
+    </div>
 
     <div class="metrics-grid">
         <div class="metric-box">
-            <div class="value critical">64.7%</div>
-            <div class="label">Projected May 2026 Fulfillment</div>
+            <div class="value" style="color:#2563eb;">307</div>
+            <div class="label">Germany HC (after transfer)</div>
         </div>
         <div class="metric-box">
-            <div class="value">257</div>
-            <div class="label">Current Headcount</div>
+            <div class="value" style="color:#7c3aed;">150</div>
+            <div class="label">Asia HC (after transfer)</div>
         </div>
         <div class="metric-box">
-            <div class="value critical">67.3%</div>
-            <div class="label">Plateau Fulfillment (No Hiring)</div>
+            <div class="value on-track">82.2%</div>
+            <div class="label">Germany Plateau (Aug+)</div>
         </div>
         <div class="metric-box">
-            <div class="value">+10</div>
-            <div class="label">Min. Hires Needed for 70%*</div>
+            <div class="value critical">47.0%</div>
+            <div class="label">Asia Plateau (Jul+)</div>
+        </div>
+        <div class="metric-box">
+            <div class="value at-risk">70.9%</div>
+            <div class="label">Germany Jun (hits 70%)</div>
+        </div>
+        <div class="metric-box">
+            <div class="value critical">−18.0 pp</div>
+            <div class="label">Asia Drop vs Baseline</div>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="card">
+            <h2>🇩🇪 Factory A (Germany) — Fulfillment Projection</h2>
+            <div class="chart-container">
+                <canvas id="chartA"></canvas>
+            </div>
+        </div>
+        <div class="card">
+            <h2>🌏 Factory B (Asia) — Fulfillment Projection</h2>
+            <div class="chart-container">
+                <canvas id="chartB"></canvas>
+            </div>
         </div>
     </div>
 
     <div class="card">
-        <h2>Historical &amp; Projected Fulfillment Rate</h2>
-        <div class="chart-container">
-            <canvas id="mainChart"></canvas>
-        </div>
-    </div>
-
-    <div class="card">
-        <h2>Model Details</h2>
-        <p>Best-fit linear regression on headcount composition (R&sup2; = 0.946):</p>
-        <div class="formula">
-            fulfillment_pct = 0.0184 &times; new_hires + 0.0884 &times; workers_1mo + 0.2065 &times; workers_2mo + 0.2987 &times; tenured &minus; 9.50
-        </div>
-        <p style="margin-top:8px; font-size:0.9rem; color:#555;">
-            Key insight: Tenured workers (3+ months) contribute <strong>16&times; more</strong> to fulfillment per head than new hires.
-            Workers ramp linearly from ~0.02 to ~0.30 fulfillment contribution as they gain experience.
-        </p>
-    </div>
-
-    <div class="card">
-        <h2>Backtest: Model Predicted vs Actual</h2>
-        <div class="chart-container">
-            <canvas id="backtestChart"></canvas>
-        </div>
-    </div>
-
-    <div class="card">
-        <h2>6-Month Forward Projection (No New Hiring)</h2>
+        <h2>Combined Side-by-Side Projection Table</h2>
         <table>
             <thead>
-                <tr><th>Month</th><th>Headcount</th><th>New</th><th>1-Mo</th><th>2-Mo</th><th>Tenured</th><th>Fulfillment</th><th>Status</th></tr>
+                <tr>
+                    <th rowspan="2">Month</th>
+                    <th colspan="3" style="border-bottom:2px solid #2563eb;">Germany (Factory A)</th>
+                    <th colspan="3" style="border-bottom:2px solid #7c3aed;">Asia (Factory B)</th>
+                </tr>
+                <tr>
+                    <th>Baseline</th><th>With Transfer</th><th>Status</th>
+                    <th>Baseline</th><th>With Transfer</th><th>Status</th>
+                </tr>
             </thead>
             <tbody>
-                <tr><td>May 2026</td><td>257</td><td>0</td><td>9</td><td>7</td><td>241</td><td>64.72%</td><td><span class="badge badge-critical">🔴 Critical</span></td></tr>
-                <tr><td>Jun 2026</td><td>257</td><td>0</td><td>0</td><td>9</td><td>248</td><td>66.43%</td><td><span class="badge badge-critical">🔴 Critical</span></td></tr>
-                <tr><td>Jul 2026</td><td>257</td><td>0</td><td>0</td><td>0</td><td>257</td><td>67.26%</td><td><span class="badge badge-critical">🔴 Critical</span></td></tr>
-                <tr><td>Aug 2026</td><td>257</td><td>0</td><td>0</td><td>0</td><td>257</td><td>67.26%</td><td><span class="badge badge-critical">🔴 Critical</span></td></tr>
-                <tr><td>Sep 2026</td><td>257</td><td>0</td><td>0</td><td>0</td><td>257</td><td>67.26%</td><td><span class="badge badge-critical">🔴 Critical</span></td></tr>
-                <tr><td>Oct 2026</td><td>257</td><td>0</td><td>0</td><td>0</td><td>257</td><td>67.26%</td><td><span class="badge badge-critical">🔴 Critical</span></td></tr>
+                <tr>
+                    <td><strong>May 2026</strong></td>
+                    <td>64.7%</td><td>65.6%</td><td><span class="badge badge-critical">🔴 Critical</span></td>
+                    <td>63.2%</td><td>45.2%</td><td><span class="badge badge-critical">🔴 Critical</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Jun 2026</strong></td>
+                    <td>66.4%</td><td>70.9%</td><td><span class="badge badge-atrisk">🟡 At Risk</span></td>
+                    <td>64.3%</td><td>46.3%</td><td><span class="badge badge-critical">🔴 Critical</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Jul 2026</strong></td>
+                    <td>67.3%</td><td>77.6%</td><td><span class="badge badge-atrisk">🟡 At Risk</span></td>
+                    <td>65.0%</td><td>47.0%</td><td><span class="badge badge-critical">🔴 Critical</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Aug 2026</strong></td>
+                    <td>67.3%</td><td>82.2%</td><td><span class="badge badge-atrisk">🟡 At Risk</span></td>
+                    <td>65.0%</td><td>47.0%</td><td><span class="badge badge-critical">🔴 Critical</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Sep 2026</strong></td>
+                    <td>67.3%</td><td>82.2%</td><td><span class="badge badge-atrisk">🟡 At Risk</span></td>
+                    <td>65.0%</td><td>47.0%</td><td><span class="badge badge-critical">🔴 Critical</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Oct 2026</strong></td>
+                    <td>67.3%</td><td>82.2%</td><td><span class="badge badge-atrisk">🟡 At Risk</span></td>
+                    <td>65.0%</td><td>47.0%</td><td><span class="badge badge-critical">🔴 Critical</span></td>
+                </tr>
             </tbody>
         </table>
-        <div class="summary-box critical-bg">
-            <strong>⚠️ Critical Finding:</strong> At current headcount (257 workers), the Germany factory is projected to fulfill only ~64.7% of orders on time next month (May 2026),
-            rising to a plateau of ~67.3% once all current workers are fully tenured. This remains <strong>below the 70% minimum threshold</strong> across the entire 6-month horizon,
-            placing the factory in the <span style="color:#dc3545; font-weight:700;">🔴 Critical</span> zone continuously.
-        </div>
     </div>
 
     <div class="card">
-        <h2>Hiring Scenario Analysis</h2>
-        <p style="margin-bottom:12px; font-size:0.9rem; color:#555;">If additional workers are hired in May, when do they push fulfillment above 70%?</p>
-        <table>
-            <thead>
-                <tr><th>New Hires Added</th><th>May (new)</th><th>Jun (1-mo)</th><th>Jul (2-mo)</th><th>Aug+ (tenured)</th></tr>
-            </thead>
-            <tbody>
-                <tr><td>+10</td><td><span class="badge badge-critical">64.9%</span></td><td><span class="badge badge-critical">67.3%</span></td><td><span class="badge badge-critical">69.3%</span></td><td><span class="badge badge-atrisk">70.2% ✓</span></td></tr>
-                <tr><td>+20</td><td><span class="badge badge-critical">65.1%</span></td><td><span class="badge badge-critical">68.2%</span></td><td><span class="badge badge-atrisk">71.4% ✓</span></td><td><span class="badge badge-atrisk">73.2%</span></td></tr>
-                <tr><td>+30</td><td><span class="badge badge-critical">65.3%</span></td><td><span class="badge badge-critical">69.1%</span></td><td><span class="badge badge-atrisk">73.5%</span></td><td><span class="badge badge-atrisk">76.2%</span></td></tr>
-                <tr><td>+40</td><td><span class="badge badge-critical">65.5%</span></td><td><span class="badge badge-atrisk">70.0% ✓</span></td><td><span class="badge badge-atrisk">75.5%</span></td><td><span class="badge badge-atrisk">79.2%</span></td></tr>
-                <tr><td>+50</td><td><span class="badge badge-critical">65.6%</span></td><td><span class="badge badge-atrisk">70.8%</span></td><td><span class="badge badge-atrisk">77.6%</span></td><td><span class="badge badge-atrisk">82.2%</span></td></tr>
-            </tbody>
-        </table>
-        <p style="margin-top:12px; font-size:0.85rem; color:#666;">
-            *Minimum +10 hires reaches 70% by August (3 months). +40 hires reaches 70% by June (1 month after hire).
-            Note: Adding headcount to Germany requires reducing Asia factory headcount from the shared 450-worker pool, unless net-new hiring is approved.
-        </p>
+        <h2>Analysis &amp; Recommendation</h2>
+        <div class="summary-box summary-info">
+            <strong>🇩🇪 Germany gains:</strong> Fulfillment rises from 64.7% → 65.6% immediately (May), crosses 70% in June (70.9%), and plateaus at 82.2% by August once all transferred workers are fully ramped. This puts Germany in the 🟡 At Risk zone (acceptable) by June and approaches 🟢 On Track.
+        </div>
+        <div class="summary-box summary-danger" style="margin-top:12px;">
+            <strong>🌏 Asia collapses:</strong> Losing 50 tenured workers (27% of workforce) crashes Asia from 63.2% → 45.2%, settling at 47.0%. This is <strong>deeply in 🔴 Critical territory</strong> — a 18 percentage point drop. Asia was already below 70%; this makes it far worse.
+        </div>
+        <div class="summary-box summary-warn" style="margin-top:12px;">
+            <strong>⚖️ Net assessment:</strong> Transferring 50 fixes Germany but devastates Asia. You'd be trading one critical factory for another even more critical one. Consider instead:
+            <ul style="margin-top:8px; margin-left:20px; font-size:0.85rem;">
+                <li><strong>Transfer 20–25</strong> (smaller move): Gets Germany to ~70% by Jul/Aug while limiting Asia damage</li>
+                <li><strong>Net-new hiring:</strong> Add headcount without reducing Asia — requires HR approval but avoids the tradeoff</li>
+                <li><strong>Hybrid approach:</strong> Transfer 15–20 now + initiate net-new hiring process for both sites</li>
+            </ul>
+        </div>
     </div>
 </div>
 
 <script>
-// Historical data
-const months = ['May-24','Jun-24','Jul-24','Aug-24','Sep-24','Oct-24','Nov-24','Dec-24','Jan-25','Feb-25','Mar-25','Apr-25','May-25','Jun-25','Jul-25','Aug-25','Sep-25','Oct-25','Nov-25','Dec-25','Jan-26','Feb-26','Mar-26','Apr-26'];
-const actual = [60.67,60.99,57.54,57.32,58.66,61.91,63.61,60.41,59.80,59.23,58.25,61.35,63.20,66.32,65.61,63.12,61.58,62.84,62.57,65.85,66.67,64.80,63.31,62.63];
-const predicted = [61.61,59.58,58.17,57.49,58.58,61.06,62.41,60.99,60.42,58.75,58.92,60.98,63.84,66.38,65.46,63.63,62.25,62.11,63.09,65.73,66.58,64.82,63.05,62.34];
+const months = ['May-26','Jun-26','Jul-26','Aug-26','Sep-26','Oct-26'];
 
-// Projected
-const projMonths = ['May-26','Jun-26','Jul-26','Aug-26','Sep-26','Oct-26'];
-const projValues = [64.72, 66.43, 67.26, 67.26, 67.26, 67.26];
+// Factory A data
+const aBaseline = [64.72, 66.43, 67.26, 67.26, 67.26, 67.26];
+const aTransfer = [65.64, 70.85, 77.58, 82.19, 82.19, 82.19];
 
-const allMonths = months.concat(projMonths);
-const actualExtended = actual.concat([null,null,null,null,null,null]);
-const projExtended = new Array(months.length).fill(null).concat(projValues);
-// Bridge point
-projExtended[months.length - 1] = actual[actual.length - 1];
+// Factory B data
+const bBaseline = [63.18, 64.25, 64.98, 64.98, 64.98, 64.98];
+const bTransfer = [45.22, 46.29, 47.03, 47.03, 47.03, 47.03];
 
-const ctx1 = document.getElementById('mainChart').getContext('2d');
-new Chart(ctx1, {
-    type: 'line',
-    data: {
-        labels: allMonths,
-        datasets: [
-            {
-                label: 'Actual Fulfillment %',
-                data: actualExtended,
-                borderColor: '#2563eb',
-                backgroundColor: 'rgba(37,99,235,0.1)',
-                borderWidth: 2.5,
-                pointRadius: 3,
-                fill: false,
-                tension: 0.2
-            },
-            {
-                label: 'Projected (No New Hires)',
-                data: projExtended,
-                borderColor: '#dc3545',
-                backgroundColor: 'rgba(220,53,69,0.1)',
-                borderWidth: 2.5,
-                borderDash: [6, 4],
-                pointRadius: 3,
-                fill: false,
-                tension: 0.2
-            }
-        ]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            annotation: {},
-            legend: { position: 'top' }
-        },
-        scales: {
-            y: {
-                min: 50,
-                max: 90,
-                title: { display: true, text: 'Fulfillment %' }
-            }
-        }
-    },
-    plugins: [{
-        id: 'thresholdLines',
-        afterDraw(chart) {
-            const ctx = chart.ctx;
-            const yAxis = chart.scales.y;
-            const xAxis = chart.scales.x;
-            // 70% line
-            const y70 = yAxis.getPixelForValue(70);
-            ctx.save();
-            ctx.strokeStyle = '#ffc107';
-            ctx.lineWidth = 1.5;
-            ctx.setLineDash([5, 5]);
-            ctx.beginPath();
-            ctx.moveTo(xAxis.left, y70);
-            ctx.lineTo(xAxis.right, y70);
-            ctx.stroke();
-            ctx.fillStyle = '#ffc107';
-            ctx.font = '11px sans-serif';
-            ctx.fillText('70% Min Target', xAxis.right - 90, y70 - 5);
-            // 85% line
-            const y85 = yAxis.getPixelForValue(85);
-            ctx.strokeStyle = '#28a745';
-            ctx.beginPath();
-            ctx.moveTo(xAxis.left, y85);
-            ctx.lineTo(xAxis.right, y85);
-            ctx.stroke();
-            ctx.fillStyle = '#28a745';
-            ctx.fillText('85% On Track', xAxis.right - 85, y85 - 5);
-            ctx.restore();
-        }
-    }]
-});
+function drawThresholds(chart) {
+    const ctx = chart.ctx;
+    const yAxis = chart.scales.y;
+    const xAxis = chart.scales.x;
+    ctx.save();
+    ctx.setLineDash([5, 5]);
+    // 70%
+    const y70 = yAxis.getPixelForValue(70);
+    ctx.strokeStyle = '#ffc107';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(xAxis.left, y70);
+    ctx.lineTo(xAxis.right, y70);
+    ctx.stroke();
+    ctx.fillStyle = '#ffc107';
+    ctx.font = '10px sans-serif';
+    ctx.fillText('70% Min', xAxis.right - 52, y70 - 4);
+    // 85%
+    const y85 = yAxis.getPixelForValue(85);
+    ctx.strokeStyle = '#28a745';
+    ctx.beginPath();
+    ctx.moveTo(xAxis.left, y85);
+    ctx.lineTo(xAxis.right, y85);
+    ctx.stroke();
+    ctx.fillStyle = '#28a745';
+    ctx.fillText('85%', xAxis.right - 30, y85 - 4);
+    ctx.restore();
+}
 
-// Backtest chart
-const ctx2 = document.getElementById('backtestChart').getContext('2d');
-new Chart(ctx2, {
+const thresholdPlugin = { id: 'thresh', afterDraw: drawThresholds };
+
+// Chart A
+new Chart(document.getElementById('chartA').getContext('2d'), {
     type: 'line',
     data: {
         labels: months,
         datasets: [
-            {
-                label: 'Actual',
-                data: actual,
-                borderColor: '#2563eb',
-                borderWidth: 2,
-                pointRadius: 3,
-                fill: false,
-                tension: 0.2
-            },
-            {
-                label: 'Model Predicted',
-                data: predicted,
-                borderColor: '#6c757d',
-                borderWidth: 2,
-                borderDash: [4, 3],
-                pointRadius: 3,
-                fill: false,
-                tension: 0.2
-            }
+            { label: 'Baseline (no transfer)', data: aBaseline, borderColor: '#94a3b8', borderWidth: 2, borderDash: [5,4], pointRadius: 3, fill: false, tension: 0.2 },
+            { label: 'With +50 Transfer', data: aTransfer, borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.08)', borderWidth: 2.5, pointRadius: 4, fill: true, tension: 0.2 }
         ]
     },
     options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { position: 'top' } },
-        scales: {
-            y: {
-                min: 55,
-                max: 70,
-                title: { display: true, text: 'Fulfillment %' }
-            }
-        }
-    }
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'top', labels: { font: { size: 11 } } } },
+        scales: { y: { min: 40, max: 90, title: { display: true, text: 'Fulfillment %' } } }
+    },
+    plugins: [thresholdPlugin]
+});
+
+// Chart B
+new Chart(document.getElementById('chartB').getContext('2d'), {
+    type: 'line',
+    data: {
+        labels: months,
+        datasets: [
+            { label: 'Baseline (no transfer)', data: bBaseline, borderColor: '#94a3b8', borderWidth: 2, borderDash: [5,4], pointRadius: 3, fill: false, tension: 0.2 },
+            { label: 'With −50 Transfer', data: bTransfer, borderColor: '#7c3aed', backgroundColor: 'rgba(124,58,237,0.08)', borderWidth: 2.5, pointRadius: 4, fill: true, tension: 0.2 }
+        ]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'top', labels: { font: { size: 11 } } } },
+        scales: { y: { min: 40, max: 90, title: { display: true, text: 'Fulfillment %' } } }
+    },
+    plugins: [thresholdPlugin]
 });
 </script>
 </body>
