@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Factory Transfer Simulator — Germany & Asia</title>
+<title>🐱 Factory Transfer Simulator — Germany & Asia</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -19,7 +19,6 @@ h1 { font-size: 1.5rem; margin-bottom: 4px; }
 .slider-row { display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; }
 .slider-row input[type=range] { width: 320px; max-width: 60vw; height: 8px; cursor: pointer; accent-color: #3b82f6; }
 .slider-value { font-size: 2rem; font-weight: 700; color: #3b82f6; min-width: 80px; }
-.slider-labels { display: flex; justify-content: space-between; width: 320px; max-width: 60vw; margin: 4px auto 0; font-size: 0.75rem; color: #999; }
 .kpi-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; justify-content: center; }
 .kpi { background: #fff; border-radius: 12px; padding: 16px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); min-width: 160px; text-align: center; }
 .kpi .label { font-size: 0.8rem; color: #666; margin-bottom: 4px; }
@@ -28,7 +27,8 @@ h1 { font-size: 1.5rem; margin-bottom: 4px; }
 .critical { color: #dc2626; }
 .at-risk { color: #f59e0b; }
 .on-track { color: #16a34a; }
-canvas { max-height: 300px; }
+.chart-wrap { position: relative; height: 300px; }
+.chart-wrap canvas { position: absolute; top: 0; left: 0; width: 100% !important; height: 100% !important; }
 .summary { padding: 14px 16px; border-radius: 4px; margin-top: 16px; line-height: 1.5; border-left: 4px solid; font-size: 0.92rem; }
 .summary.warn { background: #fee2e2; border-left-color: #dc2626; }
 .summary.ok { background: #dcfce7; border-left-color: #16a34a; }
@@ -39,11 +39,11 @@ th { background: #f9fafb; font-weight: 600; }
 </style>
 </head>
 <body>
-<h1>Factory Headcount Transfer Simulator</h1>
+<h1>🐱 Factory Headcount Transfer Simulator</h1>
 <p class="subtitle">Drag the slider to see how transferring workers between Asia and Germany affects fulfillment at both factories over 6 months.</p>
 
 <div class="slider-section">
-  <h2>Workers to Transfer: Asia → Germany</h2>
+  <h2>Workers to Transfer: Asia &#8594; Germany</h2>
   <div class="slider-row">
     <span style="font-size:0.9rem;">0</span>
     <input type="range" id="transferSlider" min="0" max="100" value="50" step="1">
@@ -52,17 +52,21 @@ th { background: #f9fafb; font-weight: 600; }
   <div class="slider-value" id="sliderDisplay">50 workers</div>
 </div>
 
-<div class="kpi-row" id="kpiRow">
+<div class="kpi-row">
+  <div class="kpi"><div class="label">Germany Steady-State</div><div class="value" id="kpiAVal">—</div><div class="zone" id="kpiAZone">—</div></div>
+  <div class="kpi"><div class="label">Asia Steady-State</div><div class="value" id="kpiBVal">—</div><div class="zone" id="kpiBZone">—</div></div>
+  <div class="kpi"><div class="label">Germany HC</div><div class="value" id="kpiAHC">—</div><div class="zone">was 257</div></div>
+  <div class="kpi"><div class="label">Asia HC</div><div class="value" id="kpiBHC">—</div><div class="zone">was 200</div></div>
 </div>
 
 <div class="grid">
   <div class="card">
-    <h2>🇩🇪 Factory A (Germany)</h2>
-    <canvas id="chartA"></canvas>
+    <h2>&#127465;&#127466; Factory A (Germany)</h2>
+    <div class="chart-wrap"><canvas id="chartA"></canvas></div>
   </div>
   <div class="card">
-    <h2>🏭 Factory B (Asia)</h2>
-    <canvas id="chartB"></canvas>
+    <h2>&#127981; Factory B (Asia)</h2>
+    <div class="chart-wrap"><canvas id="chartB"></canvas></div>
   </div>
 </div>
 
@@ -85,7 +89,7 @@ th { background: #f9fafb; font-weight: 600; }
 </div>
 
 <script>
-// Model coefficients from regression
+// Model coefficients
 const modelA = { intercept: -9.4982, new_hires: 0.0184, workers_1mo: 0.0884, workers_2mo: 0.2065, tenured: 0.2987 };
 const modelB = { intercept: -6.8519, new_hires: 0.0077, workers_1mo: 0.1611, workers_2mo: 0.2365, tenured: 0.3592 };
 
@@ -121,132 +125,135 @@ function getZone(val) {
   return { label: '\u{1F534} Critical', cls: 'critical' };
 }
 
-let chartA, chartB;
+// Create charts once with animation completely disabled globally
+Chart.defaults.animation = false;
+Chart.defaults.responsive = true;
+Chart.defaults.maintainAspectRatio = false;
+Chart.defaults.resizeDelay = 0;
 
-function initCharts() {
-  const optionsBase = (title) => ({
-    responsive: true,
-    animation: false,
-    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
-    scales: { y: { min: 30, max: 95, title: { display: true, text: 'Fulfillment %' } } }
-  });
+const chartOpts = {
+  plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
+  scales: { y: { min: 30, max: 95, title: { display: true, text: 'Fulfillment %' } } }
+};
 
-  chartA = new Chart(document.getElementById('chartA'), {
-    type: 'line',
-    data: { labels: months, datasets: [
-      { label: 'With transfer', data: [], borderColor: '#3b82f6', tension: 0.3, pointRadius: 4, borderWidth: 3 },
-      { label: 'Baseline', data: [], borderColor: '#94a3b8', borderDash: [5,4], tension: 0.3, pointRadius: 3 },
-      { label: '70% min', data: [70,70,70,70,70,70], borderColor: '#f59e0b', borderDash: [3,3], pointRadius: 0, borderWidth: 2 },
-      { label: '85% on track', data: [85,85,85,85,85,85], borderColor: '#16a34a', borderDash: [3,3], pointRadius: 0, borderWidth: 2 }
-    ] },
-    options: optionsBase('Germany')
-  });
-  chartB = new Chart(document.getElementById('chartB'), {
-    type: 'line',
-    data: { labels: months, datasets: [
-      { label: 'With transfer', data: [], borderColor: '#dc2626', tension: 0.3, pointRadius: 4, borderWidth: 3 },
-      { label: 'Baseline', data: [], borderColor: '#94a3b8', borderDash: [5,4], tension: 0.3, pointRadius: 3 },
-      { label: '70% min', data: [70,70,70,70,70,70], borderColor: '#f59e0b', borderDash: [3,3], pointRadius: 0, borderWidth: 2 },
-      { label: '85% on track', data: [85,85,85,85,85,85], borderColor: '#16a34a', borderDash: [3,3], pointRadius: 0, borderWidth: 2 }
-    ] },
-    options: optionsBase('Asia')
-  });
-}
+const chartA = new Chart(document.getElementById('chartA'), {
+  type: 'line',
+  data: { labels: months, datasets: [
+    { label: 'With transfer', data: [0,0,0,0,0,0], borderColor: '#3b82f6', tension: 0.3, pointRadius: 4, borderWidth: 3, fill: false },
+    { label: 'Baseline', data: [0,0,0,0,0,0], borderColor: '#94a3b8', borderDash: [5,4], tension: 0.3, pointRadius: 3, fill: false },
+    { label: '70% min', data: [70,70,70,70,70,70], borderColor: '#f59e0b', borderDash: [3,3], pointRadius: 0, borderWidth: 2, fill: false },
+    { label: '85% on track', data: [85,85,85,85,85,85], borderColor: '#16a34a', borderDash: [3,3], pointRadius: 0, borderWidth: 2, fill: false }
+  ] },
+  options: chartOpts
+});
+
+const chartB = new Chart(document.getElementById('chartB'), {
+  type: 'line',
+  data: { labels: months, datasets: [
+    { label: 'With transfer', data: [0,0,0,0,0,0], borderColor: '#dc2626', tension: 0.3, pointRadius: 4, borderWidth: 3, fill: false },
+    { label: 'Baseline', data: [0,0,0,0,0,0], borderColor: '#94a3b8', borderDash: [5,4], tension: 0.3, pointRadius: 3, fill: false },
+    { label: '70% min', data: [70,70,70,70,70,70], borderColor: '#f59e0b', borderDash: [3,3], pointRadius: 0, borderWidth: 2, fill: false },
+    { label: '85% on track', data: [85,85,85,85,85,85], borderColor: '#16a34a', borderDash: [3,3], pointRadius: 0, borderWidth: 2, fill: false }
+  ] },
+  options: chartOpts
+});
+
+// Cache DOM refs
+const kpiAVal = document.getElementById('kpiAVal');
+const kpiAZone = document.getElementById('kpiAZone');
+const kpiBVal = document.getElementById('kpiBVal');
+const kpiBZone = document.getElementById('kpiBZone');
+const kpiAHC = document.getElementById('kpiAHC');
+const kpiBHC = document.getElementById('kpiBHC');
+const tableABody = document.querySelector('#tableA tbody');
+const tableBBody = document.querySelector('#tableB tbody');
+const summaryBox = document.getElementById('summaryBox');
+const sliderDisplay = document.getElementById('sliderDisplay');
 
 function update(transfer) {
-  // Germany: gets +transfer as new hires
   const resA = project(modelA, stateA.nh, stateA.w1, stateA.w2, stateA.ten, transfer);
-  // Asia: loses transfer from tenured
   const asiaNewTen = Math.max(0, stateB.ten - transfer);
   const resB = project(modelB, stateB.nh, stateB.w1, stateB.w2, asiaNewTen, 0);
-  // Baseline
   const baseA = project(modelA, stateA.nh, stateA.w1, stateA.w2, stateA.ten, 0);
   const baseB = project(modelB, stateB.nh, stateB.w1, stateB.w2, stateB.ten, 0);
 
-  const fulA = resA.map(r => +r.ful.toFixed(2));
-  const fulB = resB.map(r => +r.ful.toFixed(2));
-  const baseAF = baseA.map(r => +r.ful.toFixed(2));
-  const baseBF = baseB.map(r => +r.ful.toFixed(2));
-
-  // Update charts — only update data arrays in place, don't replace datasets
-  chartA.data.datasets[0].data = fulA;
-  chartA.data.datasets[1].data = baseAF;
+  // Update chart data in place (mutate existing arrays)
+  for (let i = 0; i < 6; i++) {
+    chartA.data.datasets[0].data[i] = +resA[i].ful.toFixed(2);
+    chartA.data.datasets[1].data[i] = +baseA[i].ful.toFixed(2);
+    chartB.data.datasets[0].data[i] = +resB[i].ful.toFixed(2);
+    chartB.data.datasets[1].data[i] = +baseB[i].ful.toFixed(2);
+  }
   chartA.update('none');
-
-  chartB.data.datasets[0].data = fulB;
-  chartB.data.datasets[1].data = baseBF;
   chartB.update('none');
 
-  // KPIs
-  const steadyA = fulA[5];
-  const steadyB = fulB[5];
+  // KPIs — update text content only (no innerHTML on parent)
+  const steadyA = +resA[5].ful.toFixed(1);
+  const steadyB = +resB[5].ful.toFixed(1);
   const zoneA = getZone(steadyA);
   const zoneB = getZone(steadyB);
-  const hcA = resA[0].total;
-  const hcB = resB[0].total;
 
-  document.getElementById('kpiRow').innerHTML = `
-    <div class="kpi"><div class="label">Germany Steady-State</div><div class="value ${zoneA.cls}">${steadyA.toFixed(1)}%</div><div class="zone ${zoneA.cls}">${zoneA.label}</div></div>
-    <div class="kpi"><div class="label">Asia Steady-State</div><div class="value ${zoneB.cls}">${steadyB.toFixed(1)}%</div><div class="zone ${zoneB.cls}">${zoneB.label}</div></div>
-    <div class="kpi"><div class="label">Germany HC</div><div class="value">${hcA}</div><div class="zone">was 257</div></div>
-    <div class="kpi"><div class="label">Asia HC</div><div class="value">${hcB}</div><div class="zone">was 200</div></div>
-  `;
+  kpiAVal.textContent = steadyA.toFixed(1) + '%';
+  kpiAVal.className = 'value ' + zoneA.cls;
+  kpiAZone.textContent = zoneA.label;
+  kpiAZone.className = 'zone ' + zoneA.cls;
+
+  kpiBVal.textContent = steadyB.toFixed(1) + '%';
+  kpiBVal.className = 'value ' + zoneB.cls;
+  kpiBZone.textContent = zoneB.label;
+  kpiBZone.className = 'zone ' + zoneB.cls;
+
+  kpiAHC.textContent = resA[0].total;
+  kpiBHC.textContent = resB[0].total;
 
   // Tables
-  let tbA = '';
-  resA.forEach((r, i) => {
-    const z = getZone(r.ful);
-    tbA += `<tr><td>${months[i]}</td><td>${r.total}</td><td>${r.ful.toFixed(1)}%</td><td class="${z.cls}">${z.label}</td></tr>`;
-  });
-  document.querySelector('#tableA tbody').innerHTML = tbA;
-
-  let tbB = '';
-  resB.forEach((r, i) => {
-    const z = getZone(r.ful);
-    tbB += `<tr><td>${months[i]}</td><td>${r.total}</td><td>${r.ful.toFixed(1)}%</td><td class="${z.cls}">${z.label}</td></tr>`;
-  });
-  document.querySelector('#tableB tbody').innerHTML = tbB;
+  let tbA = '', tbB = '';
+  for (let i = 0; i < 6; i++) {
+    const zA = getZone(resA[i].ful);
+    tbA += '<tr><td>' + months[i] + '</td><td>' + resA[i].total + '</td><td>' + resA[i].ful.toFixed(1) + '%</td><td class="' + zA.cls + '">' + zA.label + '</td></tr>';
+    const zB = getZone(resB[i].ful);
+    tbB += '<tr><td>' + months[i] + '</td><td>' + resB[i].total + '</td><td>' + resB[i].ful.toFixed(1) + '%</td><td class="' + zB.cls + '">' + zB.label + '</td></tr>';
+  }
+  tableABody.innerHTML = tbA;
+  tableBBody.innerHTML = tbB;
 
   // Summary
-  const box = document.getElementById('summaryBox');
   const aAbove70 = steadyA >= 70;
   const bAbove70 = steadyB >= 70;
   if (aAbove70 && bAbove70) {
-    box.className = 'summary ok';
-    box.innerHTML = `<strong>\u2705 Both factories above 70%.</strong> Transferring ${transfer} workers puts Germany at ${steadyA.toFixed(1)}% and Asia at ${steadyB.toFixed(1)}%. Both meet the minimum fulfillment threshold.`;
+    summaryBox.className = 'summary ok';
+    summaryBox.innerHTML = '<strong>\u2705 Both factories above 70%.</strong> Transferring ' + transfer + ' workers puts Germany at ' + steadyA.toFixed(1) + '% and Asia at ' + steadyB.toFixed(1) + '%. Both meet the minimum fulfillment threshold.';
   } else if (!aAbove70 && !bAbove70) {
-    box.className = 'summary warn';
-    box.innerHTML = `<strong>\u{1F6A8} Both factories below 70%.</strong> With ${transfer} transferred, Germany reaches ${steadyA.toFixed(1)}% and Asia drops to ${steadyB.toFixed(1)}%. Neither meets the minimum threshold — additional hiring is needed.`;
+    summaryBox.className = 'summary warn';
+    summaryBox.innerHTML = '<strong>\u{1F6A8} Both factories below 70%.</strong> With ' + transfer + ' transferred, Germany reaches ' + steadyA.toFixed(1) + '% and Asia drops to ' + steadyB.toFixed(1) + '%. Neither meets the minimum threshold \u2014 additional hiring is needed.';
   } else {
-    box.className = 'summary mixed';
+    summaryBox.className = 'summary mixed';
     const above = aAbove70 ? 'Germany' : 'Asia';
     const below = aAbove70 ? 'Asia' : 'Germany';
     const aboveVal = aAbove70 ? steadyA : steadyB;
     const belowVal = aAbove70 ? steadyB : steadyA;
-    box.innerHTML = `<strong>\u{26A0}\u{FE0F} Mixed result.</strong> ${above} reaches ${aboveVal.toFixed(1)}% (above 70%) but ${below} falls to ${belowVal.toFixed(1)}% (below 70%). The transfer of ${transfer} workers helps one factory at the expense of the other.`;
+    summaryBox.innerHTML = '<strong>\u26A0\uFE0F Mixed result.</strong> ' + above + ' reaches ' + aboveVal.toFixed(1) + '% (above 70%) but ' + below + ' falls to ' + belowVal.toFixed(1) + '% (below 70%). The transfer of ' + transfer + ' workers helps one factory at the expense of the other.';
   }
 }
 
-// Init
-initCharts();
+// Slider — throttled to animation frames
 const slider = document.getElementById('transferSlider');
-const display = document.getElementById('sliderDisplay');
+let rafPending = false;
 
-function onSliderChange() {
-  const val = parseInt(slider.value);
-  display.textContent = val + ' workers';
-  update(val);
-}
-
-let rafId = null;
-slider.addEventListener('input', () => {
-  if (rafId) cancelAnimationFrame(rafId);
-  rafId = requestAnimationFrame(() => {
-    rafId = null;
-    onSliderChange();
-  });
+slider.addEventListener('input', function() {
+  if (!rafPending) {
+    rafPending = true;
+    requestAnimationFrame(function() {
+      rafPending = false;
+      const val = parseInt(slider.value);
+      sliderDisplay.textContent = val + ' workers';
+      update(val);
+    });
+  }
 });
-onSliderChange();
+
+// Initial render
+update(50);
 </script>
 </body>
 </html>
