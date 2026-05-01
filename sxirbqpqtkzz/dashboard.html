@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Factory A (Germany) — Delivery Performance Forecast</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f7fa; color: #1a1a2e; padding: 2rem; }
+h1 { font-size: 1.6rem; margin-bottom: 0.3rem; }
+.subtitle { color: #666; margin-bottom: 2rem; font-size: 0.95rem; }
+.card { background: #fff; border-radius: 12px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+.card h2 { font-size: 1.2rem; margin-bottom: 1rem; }
+.chart-container { position: relative; height: 360px; }
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+th, td { padding: 0.5rem 0.75rem; text-align: left; border-bottom: 1px solid #eee; }
+th { background: #f9fafb; font-weight: 600; }
+.zone-green { color: #16a34a; font-weight: 600; }
+.zone-yellow { color: #ca8a04; font-weight: 600; }
+.zone-red { color: #dc2626; font-weight: 600; }
+.summary-box { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 1rem 1.25rem; border-radius: 6px; margin-bottom: 1.5rem; }
+.summary-box.critical { background: #fee2e2; border-left-color: #dc2626; }
+.model-info { font-size: 0.85rem; color: #555; margin-top: 1rem; }
+</style>
+</head>
+<body>
+<h1>Factory A (Germany) — Delivery Performance Forecast</h1>
+<p class="subtitle">Headcount-based fulfillment projection | Based on data through April 2026</p>
+
+<div class="card">
+<div class="summary-box critical">
+<strong>⚠️ Action Required:</strong> At current headcount (257 workers), the Germany factory is projected to fulfill approximately <strong>64.7%</strong> of orders on time in May 2026 and plateau at <strong>~67.3%</strong> — remaining in the <span class="zone-red">🔴 Critical</span> zone (&lt;70%) throughout the 6-month forecast horizon. <strong>Additional headcount is needed to reach the 70% fulfillment threshold.</strong>
+</div>
+</div>
+
+<div class="card">
+<h2>Historical & Projected Fulfillment Rate</h2>
+<div class="chart-container"><canvas id="chartFulfillment"></canvas></div>
+</div>
+
+<div class="card">
+<h2>6-Month Forward Projection</h2>
+<table>
+<thead><tr><th>Month</th><th>Headcount</th><th>New Hires</th><th>1-Mo</th><th>2-Mo</th><th>Tenured</th><th>Projected Fulfillment</th><th>Zone</th></tr></thead>
+<tbody>
+<tr><td>May 2026</td><td>257</td><td>0</td><td>9</td><td>7</td><td>241</td><td>64.72%</td><td class="zone-red">🔴 Critical</td></tr>
+<tr><td>Jun 2026</td><td>257</td><td>0</td><td>0</td><td>9</td><td>248</td><td>66.43%</td><td class="zone-red">🔴 Critical</td></tr>
+<tr><td>Jul 2026</td><td>257</td><td>0</td><td>0</td><td>0</td><td>257</td><td>67.26%</td><td class="zone-red">🔴 Critical</td></tr>
+<tr><td>Aug 2026</td><td>257</td><td>0</td><td>0</td><td>0</td><td>257</td><td>67.26%</td><td class="zone-red">🔴 Critical</td></tr>
+<tr><td>Sep 2026</td><td>257</td><td>0</td><td>0</td><td>0</td><td>257</td><td>67.26%</td><td class="zone-red">🔴 Critical</td></tr>
+<tr><td>Oct 2026</td><td>257</td><td>0</td><td>0</td><td>0</td><td>257</td><td>67.26%</td><td class="zone-red">🔴 Critical</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="card">
+<h2>Model Details</h2>
+<p><strong>Method:</strong> Linear regression on headcount composition</p>
+<p><strong>Formula:</strong> fulfillment = 0.018 × new_hires + 0.088 × workers_1mo + 0.207 × workers_2mo + 0.299 × tenured − 9.498</p>
+<p><strong>Fit:</strong> R² = 0.946, Mean Absolute Error = 0.50%</p>
+<p class="model-info">The model shows that tenured workers (3+ months) contribute most strongly to fulfillment (~0.30% per worker), followed by 2-month workers (~0.21%), 1-month workers (~0.09%), and new hires (~0.02%). This reflects the learning curve as workers ramp up productivity.</p>
+</div>
+
+<div class="card">
+<h2>Backtest: Predicted vs Actual</h2>
+<div class="chart-container"><canvas id="chartBacktest"></canvas></div>
+</div>
+
+<script>
+const historicalLabels = ['May-24','Jun-24','Jul-24','Aug-24','Sep-24','Oct-24','Nov-24','Dec-24','Jan-25','Feb-25','Mar-25','Apr-25','May-25','Jun-25','Jul-25','Aug-25','Sep-25','Oct-25','Nov-25','Dec-25','Jan-26','Feb-26','Mar-26','Apr-26'];
+const actual = [60.67,60.99,57.54,57.32,58.66,61.91,63.61,60.41,59.80,59.23,58.25,61.35,63.20,66.32,65.61,63.12,61.58,62.84,62.57,65.85,66.67,64.80,63.31,62.63];
+const predicted = [61.61,59.58,58.17,57.49,58.58,61.06,62.41,60.99,60.42,58.75,58.92,60.98,63.84,66.38,65.46,63.63,62.25,62.11,63.09,65.73,66.58,64.82,63.05,62.34];
+
+const projLabels = ['May-26','Jun-26','Jul-26','Aug-26','Sep-26','Oct-26'];
+const projValues = [64.72,66.43,67.26,67.26,67.26,67.26];
+
+const allLabels = [...historicalLabels, ...projLabels];
+const actualFull = [...actual, ...Array(6).fill(null)];
+const projFull = [...Array(23).fill(null), actual[23], ...projValues];
+
+new Chart(document.getElementById('chartFulfillment'), {
+  type: 'line',
+  data: {
+    labels: allLabels,
+    datasets: [
+      { label: 'Actual', data: actualFull, borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.1)', fill: false, tension: 0.3, pointRadius: 3 },
+      { label: 'Projected', data: projFull, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', borderDash: [6,4], fill: false, tension: 0.3, pointRadius: 4 },
+      { label: '70% Threshold', data: Array(30).fill(70), borderColor: '#dc2626', borderDash: [3,3], borderWidth: 2, pointRadius: 0, fill: false },
+      { label: '85% On-Track', data: Array(30).fill(85), borderColor: '#16a34a', borderDash: [3,3], borderWidth: 2, pointRadius: 0, fill: false }
+    ]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, scales: { y: { min: 50, max: 90, title: { display: true, text: 'Fulfillment %' } } } }
+});
+
+new Chart(document.getElementById('chartBacktest'), {
+  type: 'line',
+  data: {
+    labels: historicalLabels,
+    datasets: [
+      { label: 'Actual', data: actual, borderColor: '#2563eb', fill: false, tension: 0.3, pointRadius: 3 },
+      { label: 'Model Predicted', data: predicted, borderColor: '#8b5cf6', borderDash: [4,3], fill: false, tension: 0.3, pointRadius: 3 }
+    ]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, scales: { y: { min: 54, max: 70, title: { display: true, text: 'Fulfillment %' } } } }
+});
+</script>
+</body>
+</html>
