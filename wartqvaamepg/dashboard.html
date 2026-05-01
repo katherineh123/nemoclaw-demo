@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Germany Factory — Fulfillment Forecast Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background:#f4f6f9; color:#1e293b; padding:24px; }
+h1 { font-size:1.6rem; margin-bottom:4px; }
+.subtitle { color:#64748b; margin-bottom:24px; font-size:0.95rem; }
+.card { background:#fff; border-radius:12px; padding:24px; margin-bottom:24px; box-shadow:0 1px 3px rgba(0,0,0,0.08); }
+.card h2 { font-size:1.15rem; margin-bottom:16px; color:#334155; }
+.kpi-row { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:24px; }
+.kpi { flex:1; min-width:180px; background:#fff; border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.08); text-align:center; }
+.kpi .label { font-size:0.8rem; text-transform:uppercase; letter-spacing:0.5px; color:#64748b; margin-bottom:6px; }
+.kpi .value { font-size:2rem; font-weight:700; }
+.kpi .detail { font-size:0.8rem; color:#94a3b8; margin-top:4px; }
+.critical { color:#dc2626; }
+.at-risk { color:#f59e0b; }
+.on-track { color:#16a34a; }
+.zone-badge { display:inline-block; padding:3px 10px; border-radius:6px; font-size:0.78rem; font-weight:600; }
+.zone-critical { background:#fef2f2; color:#dc2626; border:1px solid #fecaca; }
+.zone-at-risk { background:#fffbeb; color:#d97706; border:1px solid #fde68a; }
+.zone-on-track { background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; }
+table { width:100%; border-collapse:collapse; font-size:0.88rem; }
+th { background:#f8fafc; padding:10px 12px; text-align:left; font-weight:600; color:#475569; border-bottom:2px solid #e2e8f0; }
+td { padding:10px 12px; border-bottom:1px solid #f1f5f9; }
+.model-info { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+.model-info .item { padding:12px; background:#f8fafc; border-radius:8px; }
+.model-info .item .lbl { font-size:0.75rem; color:#64748b; text-transform:uppercase; }
+.model-info .item .val { font-size:1rem; font-weight:600; margin-top:2px; }
+canvas { max-height:360px; }
+.summary-box { background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:16px 20px; margin-top:16px; line-height:1.6; font-size:0.92rem; color:#1e40af; }
+.chart-wrap { position:relative; height:340px; }
+</style>
+</head>
+<body>
+<h1>🏭 Germany Factory — Fulfillment Forecast</h1>
+<p class="subtitle">Factory A (Europe) · Industrial Drives (AA1 Line) · Updated May 2026</p>
+
+<!-- KPIs -->
+<div class="kpi-row">
+  <div class="kpi">
+    <div class="label">Current Headcount</div>
+    <div class="value">257</div>
+    <div class="detail">April 2026</div>
+  </div>
+  <div class="kpi">
+    <div class="label">Latest Fulfillment</div>
+    <div class="value critical">62.6%</div>
+    <div class="detail"><span class="zone-badge zone-critical">🔴 Critical</span></div>
+  </div>
+  <div class="kpi">
+    <div class="label">May 2026 Projection</div>
+    <div class="value critical">64.7%</div>
+    <div class="detail"><span class="zone-badge zone-critical">🔴 Critical</span></div>
+  </div>
+  <div class="kpi">
+    <div class="label">Plateau (Jul–Oct)</div>
+    <div class="value critical">67.3%</div>
+    <div class="detail"><span class="zone-badge zone-critical">🔴 Critical</span></div>
+  </div>
+</div>
+
+<!-- Chart: Historical + Forecast -->
+<div class="card">
+  <h2>📈 Historical Performance & 6-Month Forecast</h2>
+  <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+</div>
+
+<!-- Model Details -->
+<div class="card">
+  <h2>🔬 Regression Model</h2>
+  <div class="model-info">
+    <div class="item"><div class="lbl">Model Type</div><div class="val">Multivariate Linear Regression</div></div>
+    <div class="item"><div class="lbl">R² Score</div><div class="val">0.9464</div></div>
+    <div class="item"><div class="lbl">Mean Absolute Error</div><div class="val">0.50%</div></div>
+    <div class="item"><div class="lbl">Features</div><div class="val">new_hires, workers_1mo, workers_2mo, tenured</div></div>
+  </div>
+  <p style="font-size:0.88rem;color:#475569;margin-bottom:8px;"><strong>Formula:</strong></p>
+  <code style="display:block;background:#f8fafc;padding:12px;border-radius:8px;font-size:0.85rem;">
+    fulfillment_pct = 0.0184 × new_hires + 0.0884 × workers_1mo + 0.2065 × workers_2mo + 0.2987 × tenured − 9.50
+  </code>
+  <p style="font-size:0.82rem;color:#64748b;margin-top:10px;">The model shows that tenured workers (3+ months) have the strongest contribution to fulfillment (~0.30% per worker), followed by 2-month workers (~0.21%), 1-month workers (~0.09%), and new hires (~0.02%). Worker experience matters significantly.</p>
+</div>
+
+<!-- Backtest Table -->
+<div class="card">
+  <h2>📋 Backtest: Predicted vs Actual (Last 12 Months)</h2>
+  <table>
+    <thead><tr><th>Month</th><th>Headcount</th><th>Actual</th><th>Predicted</th><th>Error</th><th>Zone</th></tr></thead>
+    <tbody id="backtestBody"></tbody>
+  </table>
+</div>
+
+<!-- Projection Table -->
+<div class="card">
+  <h2>🔮 6-Month Forward Projection (No New Hires)</h2>
+  <table>
+    <thead><tr><th>Month</th><th>New</th><th>1-mo</th><th>2-mo</th><th>Tenured</th><th>Total</th><th>Projected Fulfillment</th><th>Zone</th></tr></thead>
+    <tbody>
+      <tr><td>May 2026</td><td>0</td><td>9</td><td>7</td><td>241</td><td>257</td><td>64.72%</td><td><span class="zone-badge zone-critical">🔴 Critical</span></td></tr>
+      <tr><td>Jun 2026</td><td>0</td><td>0</td><td>9</td><td>248</td><td>257</td><td>66.43%</td><td><span class="zone-badge zone-critical">🔴 Critical</span></td></tr>
+      <tr><td>Jul 2026</td><td>0</td><td>0</td><td>0</td><td>257</td><td>257</td><td>67.26%</td><td><span class="zone-badge zone-critical">🔴 Critical</span></td></tr>
+      <tr><td>Aug 2026</td><td>0</td><td>0</td><td>0</td><td>257</td><td>257</td><td>67.26%</td><td><span class="zone-badge zone-critical">🔴 Critical</span></td></tr>
+      <tr><td>Sep 2026</td><td>0</td><td>0</td><td>0</td><td>257</td><td>257</td><td>67.26%</td><td><span class="zone-badge zone-critical">🔴 Critical</span></td></tr>
+      <tr><td>Oct 2026</td><td>0</td><td>0</td><td>0</td><td>257</td><td>257</td><td>67.26%</td><td><span class="zone-badge zone-critical">🔴 Critical</span></td></tr>
+    </tbody>
+  </table>
+  <div class="summary-box">
+    <strong>⚠️ Business Summary:</strong> At current headcount of 257 workers with no new hires, the Germany factory is projected to reach a maximum of ~67.3% fulfillment by July 2026 once all current workers are fully tenured — and then plateau there. This remains in the <strong>🔴 Critical (&lt;70%)</strong> zone, falling short of the 70% target. <strong>Additional headcount is needed.</strong> Based on the model, approximately <strong>10 additional tenured-equivalent workers</strong> would be needed to clear the 70% threshold (each tenured worker adds ~0.30% to fulfillment). However, new hires ramp slowly — plan for a 2–3 month lead time before they reach full productivity.
+  </div>
+</div>
+
+<script>
+// Data
+const histMonths = ['May-24','Jun-24','Jul-24','Aug-24','Sep-24','Oct-24','Nov-24','Dec-24',
+  'Jan-25','Feb-25','Mar-25','Apr-25','May-25','Jun-25','Jul-25','Aug-25','Sep-25','Oct-25','Nov-25','Dec-25',
+  'Jan-26','Feb-26','Mar-26','Apr-26'];
+const actual = [60.67,60.99,57.54,57.32,58.66,61.91,63.61,60.41,59.80,59.23,58.25,61.35,63.20,66.32,65.61,63.12,61.58,62.84,62.57,65.85,66.67,64.80,63.31,62.63];
+const predicted = [61.61,59.58,58.17,57.49,58.58,61.06,62.41,60.99,60.42,58.75,58.92,60.98,63.84,66.38,65.46,63.63,62.25,62.11,63.09,65.73,66.58,64.82,63.05,62.34];
+
+const forecastMonths = ['May-26','Jun-26','Jul-26','Aug-26','Sep-26','Oct-26'];
+const forecastVals = [64.72,66.43,67.26,67.26,67.26,67.26];
+
+const allMonths = histMonths.concat(forecastMonths);
+const actualFull = actual.concat(Array(6).fill(null));
+const predictedFull = predicted.concat(Array(6).fill(null));
+const forecastFull = Array(24).fill(null).concat(forecastVals);
+
+// extend predicted line into forecast zone (last actual predicted connects to first forecast)
+const predictedBridge = predicted.concat([forecastVals[0]]).concat(Array(5).fill(null));
+
+const ctx = document.getElementById('mainChart').getContext('2d');
+new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: allMonths,
+    datasets: [
+      { label: 'Actual', data: actualFull, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.08)', borderWidth: 2.5, pointRadius: 3, tension: 0.3, fill: false },
+      { label: 'Predicted (backtest)', data: predictedBridge, borderColor: '#a78bfa', borderWidth: 2, pointRadius: 2, borderDash: [4,3], tension: 0.3, fill: false },
+      { label: 'Forecast', data: forecastFull, borderColor: '#f97316', backgroundColor: 'rgba(249,115,22,0.08)', borderWidth: 2.5, pointRadius: 4, tension: 0.3, fill: false },
+      { label: '70% Target', data: Array(30).fill(70), borderColor: '#dc2626', borderWidth: 1.5, borderDash: [8,4], pointRadius: 0, fill: false },
+      { label: '85% On Track', data: Array(30).fill(85), borderColor: '#16a34a', borderWidth: 1.5, borderDash: [8,4], pointRadius: 0, fill: false }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { usePointStyle: true, padding: 16 } },
+      tooltip: { callbacks: { label: function(c) { return c.dataset.label + ': ' + (c.raw !== null ? c.raw.toFixed(2) + '%' : '—'); } } }
+    },
+    scales: {
+      y: { min: 50, max: 90, title: { display: true, text: 'Fulfillment %' },
+        grid: { color: function(c) { return c.tick.value === 70 ? '#fecaca' : c.tick.value === 85 ? '#bbf7d0' : '#f1f5f9'; } }
+      },
+      x: { title: { display: true, text: 'Month' }, ticks: { maxRotation: 45 } }
+    }
+  }
+});
+
+// Backtest table
+const backtestBody = document.getElementById('backtestBody');
+const headcounts = [249,247,242,271,265,260,256,252,250,246,278,278,274,271,265,260,255,285,279,275,269,266,259,257];
+const lastN = 12;
+for (let i = actual.length - lastN; i < actual.length; i++) {
+  const err = (actual[i] - predicted[i]).toFixed(2);
+  const zone = actual[i] >= 85 ? '<span class="zone-badge zone-on-track">🟢 On Track</span>' :
+               actual[i] >= 70 ? '<span class="zone-badge zone-at-risk">🟡 At Risk</span>' :
+               '<span class="zone-badge zone-critical">🔴 Critical</span>';
+  backtestBody.innerHTML += `<tr><td>${histMonths[i]}</td><td>${headcounts[i]}</td><td>${actual[i].toFixed(2)}%</td><td>${predicted[i].toFixed(2)}%</td><td>${err > 0 ? '+' : ''}${err}%</td><td>${zone}</td></tr>`;
+}
+</script>
+</body>
+</html>
