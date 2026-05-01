@@ -126,19 +126,29 @@ let chartA, chartB;
 function initCharts() {
   const optionsBase = (title) => ({
     responsive: true,
-    animation: { duration: 200 },
+    animation: false,
     plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
     scales: { y: { min: 30, max: 95, title: { display: true, text: 'Fulfillment %' } } }
   });
 
   chartA = new Chart(document.getElementById('chartA'), {
     type: 'line',
-    data: { labels: months, datasets: [] },
+    data: { labels: months, datasets: [
+      { label: 'With transfer', data: [], borderColor: '#3b82f6', tension: 0.3, pointRadius: 4, borderWidth: 3 },
+      { label: 'Baseline', data: [], borderColor: '#94a3b8', borderDash: [5,4], tension: 0.3, pointRadius: 3 },
+      { label: '70% min', data: [70,70,70,70,70,70], borderColor: '#f59e0b', borderDash: [3,3], pointRadius: 0, borderWidth: 2 },
+      { label: '85% on track', data: [85,85,85,85,85,85], borderColor: '#16a34a', borderDash: [3,3], pointRadius: 0, borderWidth: 2 }
+    ] },
     options: optionsBase('Germany')
   });
   chartB = new Chart(document.getElementById('chartB'), {
     type: 'line',
-    data: { labels: months, datasets: [] },
+    data: { labels: months, datasets: [
+      { label: 'With transfer', data: [], borderColor: '#dc2626', tension: 0.3, pointRadius: 4, borderWidth: 3 },
+      { label: 'Baseline', data: [], borderColor: '#94a3b8', borderDash: [5,4], tension: 0.3, pointRadius: 3 },
+      { label: '70% min', data: [70,70,70,70,70,70], borderColor: '#f59e0b', borderDash: [3,3], pointRadius: 0, borderWidth: 2 },
+      { label: '85% on track', data: [85,85,85,85,85,85], borderColor: '#16a34a', borderDash: [3,3], pointRadius: 0, borderWidth: 2 }
+    ] },
     options: optionsBase('Asia')
   });
 }
@@ -158,22 +168,14 @@ function update(transfer) {
   const baseAF = baseA.map(r => +r.ful.toFixed(2));
   const baseBF = baseB.map(r => +r.ful.toFixed(2));
 
-  // Update charts
-  chartA.data.datasets = [
-    { label: 'With transfer', data: fulA, borderColor: '#3b82f6', tension: 0.3, pointRadius: 4, borderWidth: 3 },
-    { label: 'Baseline', data: baseAF, borderColor: '#94a3b8', borderDash: [5,4], tension: 0.3, pointRadius: 3 },
-    { label: '70% min', data: [70,70,70,70,70,70], borderColor: '#f59e0b', borderDash: [3,3], pointRadius: 0, borderWidth: 2 },
-    { label: '85% on track', data: [85,85,85,85,85,85], borderColor: '#16a34a', borderDash: [3,3], pointRadius: 0, borderWidth: 2 }
-  ];
-  chartA.update();
+  // Update charts — only update data arrays in place, don't replace datasets
+  chartA.data.datasets[0].data = fulA;
+  chartA.data.datasets[1].data = baseAF;
+  chartA.update('none');
 
-  chartB.data.datasets = [
-    { label: 'With transfer', data: fulB, borderColor: '#dc2626', tension: 0.3, pointRadius: 4, borderWidth: 3 },
-    { label: 'Baseline', data: baseBF, borderColor: '#94a3b8', borderDash: [5,4], tension: 0.3, pointRadius: 3 },
-    { label: '70% min', data: [70,70,70,70,70,70], borderColor: '#f59e0b', borderDash: [3,3], pointRadius: 0, borderWidth: 2 },
-    { label: '85% on track', data: [85,85,85,85,85,85], borderColor: '#16a34a', borderDash: [3,3], pointRadius: 0, borderWidth: 2 }
-  ];
-  chartB.update();
+  chartB.data.datasets[0].data = fulB;
+  chartB.data.datasets[1].data = baseBF;
+  chartB.update('none');
 
   // KPIs
   const steadyA = fulA[5];
@@ -236,7 +238,14 @@ function onSliderChange() {
   update(val);
 }
 
-slider.addEventListener('input', onSliderChange);
+let rafId = null;
+slider.addEventListener('input', () => {
+  if (rafId) cancelAnimationFrame(rafId);
+  rafId = requestAnimationFrame(() => {
+    rafId = null;
+    onSliderChange();
+  });
+});
 onSliderChange();
 </script>
 </body>
