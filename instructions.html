@@ -267,6 +267,28 @@
 
   </div>
 
+  <hr class="divider">
+
+  <!-- ── OPENSHELL SECURITY ────────────────────────────── -->
+  <div class="section">
+    <div class="section-label">Security</div>
+    <h2>How OpenShell keeps the agent contained</h2>
+    <p>
+      NemoClaw runs inside <strong>OpenShell</strong>, NVIDIA's secure runtime for autonomous agents. OpenShell gives each agent an isolated sandbox and enforces what that sandbox can read, write, execute, and reach over the network.
+    </p>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Secrets stay outside the agent</h3>
+      <p>Agents often need credentials to use services like GitHub or model APIs. OpenShell stores those credentials as providers, then gives the agent placeholder values instead of raw secrets. When an approved outbound request needs a credential, the OpenShell supervisor resolves the placeholder at proxy time and forwards the request with the real secret. The raw key is not written into the sandbox workspace or handed to the agent process.</p>
+    </div>
+
+    <div class="card">
+      <h3>Policy-controlled network access</h3>
+      <p>OpenShell also acts like a policy firewall around the sandbox. Outbound connections are checked against declarative rules, so access can be limited to specific hosts, ports, HTTP methods, URL paths, and binaries. Requests outside the policy are denied before they leave the sandbox.</p>
+      <p style="margin-top:8px;">Those policies sit on top of container isolation and kernel-backed controls such as namespaces, privilege dropping, seccomp, and Landlock-style filesystem restrictions. The result is an agent that can be useful and autonomous while still being limited to the systems and data you intentionally allow.</p>
+    </div>
+  </div>
+
 </div>
 </body>
 </html>
