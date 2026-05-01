@@ -232,6 +232,28 @@
 
   <hr class="divider">
 
+  <!-- ── KB EXPLAINER ──────────────────────────────────── -->
+  <div class="section">
+    <div class="section-label">Domain Knowledge</div>
+    <h2>How the agent learns about your company</h2>
+    <p>
+      AI models are general-purpose — they don't know your factories, your KPIs, or how you define on-time delivery. To give the agent that context, you simply point it to documentation and ask it to read before it starts. Just like a new hire reads an onboarding wiki before their first project.
+    </p>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Company documentation</h3>
+      <p>Any internal doc works — a Confluence page, a SharePoint file, a markdown file in a repo. You tell the agent where to find it, and it reads the full thing before proceeding. The agent uses that context to interpret your data correctly: right metric names, right thresholds, right business logic.</p>
+    </div>
+
+    <div class="card">
+      <h3>Skills</h3>
+      <p>For more structured guidance, you can write a <strong>skill</strong> — a special document written for the agent rather than for humans. A skill is a plain-language, step-by-step instruction file (e.g. <code>skill.md</code>) that tells the agent exactly how to approach a specific type of task: what data to use, what model to fit, how to format results, where to publish. The agent loads it like a briefing document before starting work.</p>
+      <p style="margin-top:8px;">The <code>enterprise-knowledge-base.md</code> file in this repo is an example: it describes the factories, defines the performance thresholds, specifies the forecasting methodology, and tells the agent where to publish charts — all in plain English.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
   <!-- ── 5. TRY IT ─────────────────────────────────────── -->
   <div class="section">
     <div class="section-label">Your turn</div>
@@ -257,6 +279,7 @@
     </div>
     <div class="try-it" style="margin-top:12px;">
       <p><strong>What to expect:</strong> NemoClaw will generate an interactive chart showing the historical backtest and 6-month projection, color-coded by performance zone, and publish it to the dashboard.</p>
+      <p style="margin-top:8px;"><strong>Note:</strong> After NemoClaw pushes, wait ~20 seconds and reload the page to see your changes live.</p>
     </div>
 
     <div class="prompt-box" style="margin-top:20px;">
@@ -265,6 +288,7 @@
     </div>
     <div class="try-it" style="margin-top:12px;">
       <p><strong>What to expect:</strong> NemoClaw models the transfer with a 3-month ramp delay — Germany's improvement curves up gradually while Asia's drop is immediate. Both factories shown side by side on the same dashboard.</p>
+      <p style="margin-top:8px;"><strong>Note:</strong> Wait ~20 seconds after the push, then reload to see the updated chart.</p>
     </div>
 
     <div class="prompt-box" style="margin-top:20px;">
@@ -273,6 +297,7 @@
     </div>
     <div class="try-it" style="margin-top:12px;">
       <p><strong>What to expect:</strong> A live slider lets you drag headcount from 0 to 100 workers transferred. Both factory projections update in real time, with color-coded zones and KPI cards showing the tradeoff instantly.</p>
+      <p style="margin-top:8px;"><strong>Note:</strong> Wait ~20 seconds after the push, then reload to see the interactive version.</p>
     </div>
 
   </div>
