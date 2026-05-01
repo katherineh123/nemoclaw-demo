@@ -26,7 +26,7 @@ The important values are:
 | `DASHBOARD_OUTPUT_DIR` | Local directory where you must write the static dashboard files. |
 | `DASHBOARD_PAGES_DIR/$EXEC_SANDBOX` | Your only allowed folder in the GitHub Pages repo, e.g. `docs/exec-01`. |
 | `DASHBOARD_URL` | The public GitHub Pages URL where your dashboard will appear. |
-| `DASHBOARD_REPO_URL` | GitHub repo URL for the dashboard site. Git credentials are already configured. |
+| `DASHBOARD_REPO_URL` | GitHub repo URL for the dashboard site. Git credentials are already configured through OpenShell. |
 | `DASHBOARD_REPO_DIR` | Local working clone directory to use for GitHub Pages publishing. |
 
 Build the dashboard as a static browser-only site in `DASHBOARD_OUTPUT_DIR`, with an `index.html` entry point. Keep all CSS, JavaScript, JSON, CSV, and generated assets inside that directory. When ready, publish it with normal `git` commands:
@@ -54,7 +54,7 @@ if ! git diff --cached --quiet; then
 fi
 ```
 
-Publishing to GitHub is what makes the dashboard viewable outside the VM: GitHub Pages serves the committed files at `DASHBOARD_URL`. Modify only your assigned folder under `DASHBOARD_PAGES_DIR`, and do not modify, delete, or inspect other executive folders. Never print, copy, or commit files under `/sandbox/.nemoclaw-demo/`; Git authentication is already configured there.
+Publishing to GitHub is what makes the dashboard viewable outside the VM: GitHub Pages serves the committed files at `DASHBOARD_URL`. Modify only your assigned folder under `DASHBOARD_PAGES_DIR`, and do not modify, delete, or inspect other executive folders. Never print, copy, or commit files under `/sandbox/.nemoclaw-demo/`; Git authentication is already configured through OpenShell credential placeholders.
 
 ---
 
