@@ -931,6 +931,70 @@ for patch in patches:
 PY
 }
 
+patch_nemoclaw_onboard_extra_provider_auto_create() {
+  local source_dir="$1"
+  [ -d "$source_dir" ] || return 0
+
+  python3 - "$source_dir" <<'PY'
+import pathlib
+import sys
+
+root = pathlib.Path(sys.argv[1])
+patches = [
+    {
+        "path": root / "src" / "lib" / "onboard.ts",
+        "old": (
+            '  for (const p of extraProviderNames) {\n'
+            '    createArgs.push("--provider", p);\n'
+            '  }\n\n'
+            '  console.log(`  Creating sandbox'
+        ),
+        "new": (
+            '  for (const p of extraProviderNames) {\n'
+            '    createArgs.push("--provider", p);\n'
+            '  }\n'
+            '  if (extraProviderNames.length > 0) {\n'
+            '    createArgs.push("--auto-providers");\n'
+            '  }\n\n'
+            '  console.log(`  Creating sandbox'
+        ),
+        "marker": 'extraProviderNames.length > 0',
+    },
+    {
+        "path": root / "dist" / "lib" / "onboard.js",
+        "old": (
+            '    for (const p of extraProviderNames) {\n'
+            '        createArgs.push("--provider", p);\n'
+            '    }\n'
+            '    console.log(`  Creating sandbox'
+        ),
+        "new": (
+            '    for (const p of extraProviderNames) {\n'
+            '        createArgs.push("--provider", p);\n'
+            '    }\n'
+            '    if (extraProviderNames.length > 0) {\n'
+            '        createArgs.push("--auto-providers");\n'
+            '    }\n'
+            '    console.log(`  Creating sandbox'
+        ),
+        "marker": 'extraProviderNames.length > 0',
+    },
+]
+
+for patch in patches:
+    path = patch["path"]
+    if not path.exists():
+        continue
+    src = path.read_text()
+    if "NEMOCLAW_EXTRA_PROVIDER_NAMES" not in src or patch["marker"] in src:
+        continue
+    if patch["old"] not in src:
+        raise SystemExit(f"Could not patch {path}: extra-provider auto-create pattern not found")
+    path.write_text(src.replace(patch["old"], patch["new"], 1))
+    print(f"[nemoclaw-demo] patched NemoClaw onboard extra provider auto-create in {path}")
+PY
+}
+
 patch_nemoclaw_nvidia_inference_endpoint() {
   local source_dir="$1"
   [ -d "$source_dir" ] || return 0
@@ -1013,6 +1077,7 @@ patch_nemoclaw_source_tree() {
   patch_nemoclaw_dockerfile_workspace_fix "$source_dir"
   patch_nemoclaw_fast_clone_support "$source_dir"
   patch_nemoclaw_extra_provider_support "$source_dir"
+  patch_nemoclaw_onboard_extra_provider_auto_create "$source_dir"
   patch_nemoclaw_nvidia_inference_endpoint "$source_dir"
 }
 
