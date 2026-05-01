@@ -5,6 +5,7 @@ BASE_PORT="${NEMOCLAW_DEMO_BASE_PORT:-18789}"
 DEFAULT_COUNT="${NEMOCLAW_DEMO_COUNT:-5}"
 DEFAULT_PROVIDER="${NEMOCLAW_PROVIDER:-custom}"
 DEFAULT_MODEL="${NEMOCLAW_MODEL:-aws/anthropic/bedrock-claude-opus-4-6}"
+DEFAULT_MAX_TOKENS="${NEMOCLAW_MAX_TOKENS:-16384}"
 NVIDIA_BASE_URL="${NEMOCLAW_NVIDIA_BASE_URL:-${NVIDIA_BASE_URL:-https://inference-api.nvidia.com/v1}}"
 POLICY_TIER="${NEMOCLAW_POLICY_TIER:-balanced}"
 DASHBOARD_MODE="github-pages"
@@ -1235,7 +1236,12 @@ valid_exec_count() {
   [[ "$1" =~ ^[0-9]+$ ]] && [ "$1" -ge 1 ] && [ "$1" -le 50 ]
 }
 
+validate_max_tokens() {
+  [[ "$DEFAULT_MAX_TOKENS" =~ ^[0-9]+$ ]] && [ "$DEFAULT_MAX_TOKENS" -ge 1024 ] || die "NEMOCLAW_MAX_TOKENS must be an integer >= 1024"
+}
+
 load_inputs_noninteractive() {
+  validate_max_tokens
   EXEC_COUNT="$DEFAULT_COUNT"
   valid_exec_count "$EXEC_COUNT" || die "NEMOCLAW_DEMO_COUNT must be an integer from 1 to 50"
 
@@ -1277,6 +1283,7 @@ load_inputs_noninteractive() {
   fi
 
   log "using non-interactive inputs: count=$EXEC_COUNT provider=$PROVIDER model=$MODEL brave_search=$([ -n "$BRAVE_KEY" ] && printf enabled || printf disabled) dashboard=$DASHBOARD_MODE"
+  log "using model max output tokens $DEFAULT_MAX_TOKENS"
 }
 
 prompt_inputs() {
@@ -1285,6 +1292,7 @@ prompt_inputs() {
     return
   fi
 
+  validate_max_tokens
   EXEC_COUNT="$(prompt_count)"
   PROVIDER="custom"
   MODEL="$(prompt_default 'NVIDIA model endpoint' "$DEFAULT_MODEL")"
@@ -1319,6 +1327,7 @@ prompt_inputs() {
   save_secret GITHUB_TOKEN "$GITHUB_TOKEN_VALUE"
   export GITHUB_TOKEN="$GITHUB_TOKEN_VALUE"
   log "using NVIDIA inference endpoint $ENDPOINT_URL with model $MODEL"
+  log "using model max output tokens $DEFAULT_MAX_TOKENS"
   log "using GitHub dashboard repo $GITHUB_REPO_SLUG (Pages: $GITHUB_PAGES_BASE_URL)"
 }
 
@@ -1601,11 +1610,12 @@ patch_sandbox_config() {
   local origin="$2"
   local port="$3"
 
-  docker exec -i openshell-cluster-nemoclaw kubectl exec -i -n openshell "$sandbox" -- /bin/sh -s -- "$origin" "$port" <<'REMOTE'
+  docker exec -i openshell-cluster-nemoclaw kubectl exec -i -n openshell "$sandbox" -- /bin/sh -s -- "$origin" "$port" "$DEFAULT_MAX_TOKENS" <<'REMOTE'
 set -eu
 origin="$1"
 port="$2"
-python3 - "$origin" "$port" <<'PY'
+max_tokens="$3"
+python3 - "$origin" "$port" "$max_tokens" <<'PY'
 import hashlib
 import json
 import os
@@ -1613,6 +1623,7 @@ import sys
 
 origin = sys.argv[1]
 port = sys.argv[2]
+max_tokens = int(sys.argv[3])
 config_path = "/sandbox/.openclaw/openclaw.json"
 hash_path = "/sandbox/.openclaw/.config-hash"
 
@@ -1632,6 +1643,10 @@ gateway.setdefault("controlUi", {})["allowedOrigins"] = [
 providers = config.setdefault("models", {}).setdefault("providers", {})
 if "openai" in providers:
     providers["openai"]["api"] = "openai-completions"
+
+for provider in providers.values():
+    for model in provider.get("models", []):
+        model["maxTokens"] = max_tokens
 
 with open(config_path, "w", encoding="utf-8") as f:
     json.dump(config, f, indent=2)
@@ -1850,6 +1865,7 @@ template_signature() {
   printf 'model=%s\n' "$MODEL"
   printf 'endpoint=%s\n' "$ENDPOINT_URL"
   printf 'policy_tier=%s\n' "$POLICY_TIER"
+  printf 'max_tokens=%s\n' "$DEFAULT_MAX_TOKENS"
   printf 'template_sandbox=%s\n' "$TEMPLATE_SANDBOX"
   printf 'template_snapshot=%s\n' "$TEMPLATE_SNAPSHOT_NAME"
 }
@@ -2234,6 +2250,7 @@ run_onboard() {
     NEMOCLAW_ENDPOINT_URL="$ENDPOINT_URL" \
     NEMOCLAW_NVIDIA_BASE_URL="$NVIDIA_BASE_URL" \
     NVIDIA_BASE_URL="$NVIDIA_BASE_URL" \
+    NEMOCLAW_MAX_TOKENS="$DEFAULT_MAX_TOKENS" \
     NEMOCLAW_PREFERRED_API=openai-completions \
     NEMOCLAW_EXTRA_PROVIDER_NAMES="$GITHUB_PROVIDER_NAME" \
     NEMOCLAW_EXTRA_PROVIDER_CREDENTIAL_ENVS=GITHUB_TOKEN \

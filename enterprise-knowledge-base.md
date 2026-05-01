@@ -87,4 +87,9 @@ All factory performance visualizations are published to our internal dashboard h
 **Dashboard repo:** `https://github.com/katherineh123/nemoclaw-demo.git`
 Clone this repo and use `gh` and standard `git` CLI tools for all repo operations.
 
+**Implementation guidance for dashboard files:**
+- For dashboard HTML, prefer writing the file with a single shell heredoc or a short Python script run through `exec`, then commit and push.
+- Avoid large direct `write` tool payloads for complete dashboard HTML. Large inline tool payloads are more likely to be truncated, which can leave the file partially written or cause a schema validation error before the dashboard is updated.
+- If a push is rejected because the remote changed, run `git pull --rebase` and then retry `git push`.
+
 Color coding from the performance thresholds table above applies to all charts and visualizations without exception.
