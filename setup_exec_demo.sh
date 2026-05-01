@@ -2116,9 +2116,10 @@ author_name="$6"
 author_email="$7"
 
 demo_dir=/sandbox/.nemoclaw-demo
+git_cred_dir=/sandbox/.nemoclaw
 workspace=/sandbox/.openclaw/workspace
-cred_file="$demo_dir/git-credentials"
-mkdir -p "$demo_dir" "$workspace"
+cred_file="$git_cred_dir/git-credentials"
+mkdir -p "$demo_dir" "$git_cred_dir" "$workspace"
 
 python3 - "$demo_dir/dashboard.env" \
   "$sandbox" \
@@ -2170,6 +2171,7 @@ path.write_text(text.rstrip() + "\n", encoding="utf-8")
 PY
 
 rm -f "$workspace/publish_dashboard.sh" "$demo_dir/github-token" "$demo_dir/git-askpass.sh"
+rm -f "$demo_dir/git-credentials" "$demo_dir/git-credentials.lock"
 
 repo_host="$(printf '%s\n' "$repo_url" | sed -E 's#^[A-Za-z][A-Za-z0-9+.-]*://([^/]+)/.*#\1#')"
 [ -n "$repo_host" ] || repo_host=github.com
@@ -2182,11 +2184,36 @@ for gitconfig in /sandbox/.gitconfig /tmp/.gitconfig; do
   git config --file "$gitconfig" credential.useHttpPath false
   git config --file "$gitconfig" --add safe.directory "$workspace/github-pages-dashboard" 2>/dev/null || true
 done
-chmod 700 "$demo_dir"
+chmod 700 "$demo_dir" "$git_cred_dir"
 chmod 600 "$demo_dir/dashboard.env" /sandbox/.gitconfig /tmp/.gitconfig "$cred_file" 2>/dev/null || true
 chown -R sandbox:sandbox "$demo_dir" 2>/dev/null || true
+chown -R sandbox:sandbox "$git_cred_dir" 2>/dev/null || true
 chown sandbox:sandbox /sandbox/.gitconfig /tmp/.gitconfig 2>/dev/null || true
 REMOTE
+}
+
+configure_github_publish_policy() {
+  local sandbox="$1"
+  [ "$DASHBOARD_MODE" = "github-pages" ] || return 0
+
+  log "configuring GitHub publishing policy for $sandbox"
+  openshell policy update -g nemoclaw "$sandbox" --remove-endpoint github.com:443 --wait --timeout 90 >/dev/null 2>&1 || true
+  openshell policy update -g nemoclaw "$sandbox" --remove-endpoint api.github.com:443 --wait --timeout 90 >/dev/null 2>&1 || true
+  openshell policy update -g nemoclaw "$sandbox" \
+    --add-endpoint github.com:443:full:rest:enforce \
+    --binary /usr/bin/git \
+    --binary /usr/lib/git-core/git-remote-http \
+    --binary /usr/lib/git-core/git-remote-https \
+    --binary /usr/bin/gh \
+    --binary /usr/bin/curl \
+    --rule-name github_publish \
+    --wait --timeout 90 >/dev/null
+  openshell policy update -g nemoclaw "$sandbox" \
+    --add-endpoint api.github.com:443:full:rest:enforce \
+    --binary /usr/bin/gh \
+    --binary /usr/bin/curl \
+    --rule-name github_api \
+    --wait --timeout 90 >/dev/null
 }
 
 run_onboard() {
@@ -2278,6 +2305,7 @@ main() {
       update_registry_dashboard_port "$SANDBOX" "$PORT"
       repair_openclaw_state_symlinks "$SANDBOX"
       configure_dashboard_git_access "$SANDBOX" "$DASHBOARD_URL"
+      configure_github_publish_policy "$SANDBOX"
       patch_sandbox_config "$SANDBOX" "$CHAT_UI_URL" "$PORT"
       restart_gateway "$SANDBOX"
     done
@@ -2293,6 +2321,7 @@ main() {
     start_forward "$SANDBOX" "$PORT" http
     repair_openclaw_state_symlinks "$SANDBOX"
     configure_dashboard_git_access "$SANDBOX" "$DASHBOARD_URL"
+    configure_github_publish_policy "$SANDBOX"
 
     BASE_SNAPSHOT_NAME="${NEMOCLAW_DEMO_SNAPSHOT_NAME:-exec-demo-$(date -u +%Y%m%d%H%M%S)}"
     if [ "$EXEC_COUNT" -gt 1 ]; then
@@ -2314,6 +2343,7 @@ main() {
       update_registry_dashboard_port "$SANDBOX" "$PORT"
       repair_openclaw_state_symlinks "$SANDBOX"
       configure_dashboard_git_access "$SANDBOX" "$DASHBOARD_URL"
+      configure_github_publish_policy "$SANDBOX"
       patch_sandbox_config "$SANDBOX" "$CHAT_UI_URL" "$PORT"
       restart_gateway "$SANDBOX"
     done
