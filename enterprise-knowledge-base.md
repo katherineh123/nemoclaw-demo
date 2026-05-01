@@ -7,57 +7,6 @@
 
 ---
 
-## Demo Runtime & Publishing Contract
-
-For this hands-on demo, each OpenClaw sandbox is assigned exactly one GitHub Pages output folder. Before creating or publishing any visualization, load the sandbox runtime values:
-
-```bash
-set -a
-. /sandbox/.nemoclaw-demo/dashboard.env
-set +a
-mkdir -p "$DASHBOARD_OUTPUT_DIR"
-```
-
-The important values are:
-
-| Variable | Meaning |
-|---|---|
-| `EXEC_SANDBOX` | Your assigned demo identity, e.g. `exec-01`. |
-| `DASHBOARD_OUTPUT_DIR` | Local directory where you must write the static dashboard files. |
-| `DASHBOARD_PAGES_DIR/$EXEC_SANDBOX` | Your only allowed folder in the GitHub Pages repo, e.g. `docs/exec-01`. |
-| `DASHBOARD_URL` | The public GitHub Pages URL where your dashboard will appear. |
-| `DASHBOARD_REPO_URL` | GitHub repo URL for the dashboard site. Git credentials are already configured through OpenShell. |
-| `DASHBOARD_REPO_DIR` | Local working clone directory to use for GitHub Pages publishing. |
-
-Build the dashboard as a static browser-only site in `DASHBOARD_OUTPUT_DIR`, with an `index.html` entry point. Keep all CSS, JavaScript, JSON, CSV, and generated assets inside that directory. When ready, publish it with normal `git` commands:
-
-```bash
-if [ ! -d "$DASHBOARD_REPO_DIR/.git" ]; then
-  git clone --branch "$DASHBOARD_REPO_BRANCH" "$DASHBOARD_REPO_URL" "$DASHBOARD_REPO_DIR" || git clone "$DASHBOARD_REPO_URL" "$DASHBOARD_REPO_DIR"
-fi
-cd "$DASHBOARD_REPO_DIR"
-git fetch origin "$DASHBOARD_REPO_BRANCH"
-git checkout "$DASHBOARD_REPO_BRANCH" 2>/dev/null || git checkout -b "$DASHBOARD_REPO_BRANCH" "origin/$DASHBOARD_REPO_BRANCH"
-git pull --rebase origin "$DASHBOARD_REPO_BRANCH"
-target="$DASHBOARD_PAGES_DIR/$EXEC_SANDBOX"
-mkdir -p "$target"
-find "$target" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
-cp -R "$DASHBOARD_OUTPUT_DIR"/. "$target"/
-touch "$DASHBOARD_PAGES_DIR/.nojekyll"
-git add "$DASHBOARD_PAGES_DIR/.nojekyll" "$target"
-if ! git diff --cached --quiet; then
-  git commit -m "Update $EXEC_SANDBOX dashboard"
-  git push origin "HEAD:$DASHBOARD_REPO_BRANCH" || {
-    git pull --rebase origin "$DASHBOARD_REPO_BRANCH"
-    git push origin "HEAD:$DASHBOARD_REPO_BRANCH"
-  }
-fi
-```
-
-Publishing to GitHub is what makes the dashboard viewable outside the VM: GitHub Pages serves the committed files at `DASHBOARD_URL`. Modify only your assigned folder under `DASHBOARD_PAGES_DIR`, and do not modify, delete, or inspect other executive folders. Never print, copy, or commit files under `/sandbox/.nemoclaw-demo/`; Git authentication is already configured through OpenShell credential placeholders.
-
----
-
 ## Overview
 
 This article documents how we measure and model the relationship between factory headcount and on-time delivery performance across our two manufacturing sites. It is the reference for supply chain analysts, operations managers, and any tooling or agents involved in factory performance analysis and reporting.
@@ -129,13 +78,11 @@ Projections should always be accompanied by a plain-language business summary �
 All factory performance visualizations are published to our internal dashboard hosted on GitHub Pages. Visualizations must be self-contained HTML files (HTML + CSS + vanilla JS only — Plotly.js or Chart.js via CDN are acceptable). No server-side dependencies.
 
 **Publishing workflow:**
-1. Load `/sandbox/.nemoclaw-demo/dashboard.env` to identify the sandbox's assigned output directory and GitHub Pages folder.
-2. Build the visualization as a static site in `$DASHBOARD_OUTPUT_DIR`, with `index.html` as the entry point.
-3. Clone or update `$DASHBOARD_REPO_URL` in `$DASHBOARD_REPO_DIR`.
-4. Copy the static site into `docs/$EXEC_SANDBOX`, commit that folder, and push to `$DASHBOARD_REPO_BRANCH`.
-5. GitHub Pages serves the update automatically at `$DASHBOARD_URL`.
+1. All visualizations live in a single file: `dashboard.html`. Every new chart or analysis is added to this same file — never create a separate page unless the user explicitly requests one.
+2. When updating, overwrite `dashboard.html` in place. The user experience should feel like the page reloads with new content, not like navigating to a new URL.
+3. Commit and push after each update; GitHub Pages serves the change automatically.
 
 **Dashboard repo:** `https://github.com/katherineh123/nemoclaw-demo.git`
-Use the sandbox's assigned `docs/$EXEC_SANDBOX` folder only. Do not modify dashboard folders assigned to other executives.
+On first use, fork this repo to create your working copy. Use `gh` and standard `git` CLI tools for all repo operations.
 
 Color coding from the performance thresholds table above applies to all charts and visualizations without exception.
