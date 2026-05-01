@@ -11,6 +11,19 @@ Demo assets for the NemoClaw supply chain AI walkthrough.
 | `instructions.html` | Step-by-step demo guide for participants. Explains NemoClaw, data connectors, and walks through all four prompts with "what to expect" notes. |
 | `setup_exec_demo.sh` | Fresh-VM setup/reset script for the NemoClaw demo. It installs dependencies, prompts for credentials, creates isolated OpenClaw sandboxes, and prints each demo participant's links. |
 
+## How to set up the demo
+
+1. **Fork the repo** — start from [https://github.com/katherineh123/nemoclaw-demo](https://github.com/katherineh123/nemoclaw-demo/tree/main) and fork it to your own GitHub account.
+2. **Update the repo link** — in `enterprise-knowledge-base.md` and in the Prompt 1 text inside `instructions.html`, replace the repo URL with your fork's URL.
+3. **Create a Brev instance** — provision a instance with 4 CPUs and 16 GiB RAM.
+4. **Run the setup script** — execute `setup_exec_demo.sh` on the instance. It provisions N isolated OpenShell sandboxes, each with NemoClaw inside.
+5. **Enter credentials when prompted** — the script will ask for:
+   - NVIDIA `inference.nvidia.com` API key
+   - Brave Search API key
+   - GitHub Personal Access Token (PAT)
+   - URL of the GitHub repo that demo participants will push their visualizations to (i.e. your fork)
+6. **Note on GitHub access** — demo participants will have write access to your GitHub repo via the PAT. To avoid risk to your main account, consider creating a dedicated GitHub account for the demo.
+
 ## Secrets
 
 The NemoClaw demo setup script caches values on the VM so repeated startup runs
