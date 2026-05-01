@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Factory Transfer Scenario — Fulfillment Impact Dashboard</title>
+<title>Factory Transfer Simulator — Interactive Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -12,177 +12,330 @@ h1 { font-size:1.6rem; margin-bottom:4px; }
 .subtitle { color:#64748b; margin-bottom:24px; font-size:0.95rem; }
 .card { background:#fff; border-radius:12px; padding:24px; margin-bottom:24px; box-shadow:0 1px 3px rgba(0,0,0,0.08); }
 .card h2 { font-size:1.15rem; margin-bottom:16px; color:#334155; }
-.kpi-row { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:24px; }
-.kpi { flex:1; min-width:160px; background:#fff; border-radius:12px; padding:18px; box-shadow:0 1px 3px rgba(0,0,0,0.08); text-align:center; }
-.kpi .label { font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px; color:#64748b; margin-bottom:6px; }
-.kpi .value { font-size:1.7rem; font-weight:700; }
-.kpi .detail { font-size:0.78rem; color:#94a3b8; margin-top:4px; }
+.kpi-row { display:flex; gap:14px; flex-wrap:wrap; margin-bottom:24px; }
+.kpi { flex:1; min-width:140px; background:#fff; border-radius:12px; padding:16px; box-shadow:0 1px 3px rgba(0,0,0,0.08); text-align:center; }
+.kpi .label { font-size:0.72rem; text-transform:uppercase; letter-spacing:0.5px; color:#64748b; margin-bottom:5px; }
+.kpi .value { font-size:1.5rem; font-weight:700; }
+.kpi .detail { font-size:0.75rem; color:#94a3b8; margin-top:3px; }
 .critical { color:#dc2626; }
 .at-risk { color:#f59e0b; }
 .on-track { color:#16a34a; }
-.zone-badge { display:inline-block; padding:3px 10px; border-radius:6px; font-size:0.78rem; font-weight:600; }
+.zone-badge { display:inline-block; padding:3px 10px; border-radius:6px; font-size:0.75rem; font-weight:600; }
 .zone-critical { background:#fef2f2; color:#dc2626; border:1px solid #fecaca; }
 .zone-at-risk { background:#fffbeb; color:#d97706; border:1px solid #fde68a; }
 .zone-on-track { background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; }
-table { width:100%; border-collapse:collapse; font-size:0.85rem; }
-th { background:#f8fafc; padding:10px 12px; text-align:left; font-weight:600; color:#475569; border-bottom:2px solid #e2e8f0; }
-td { padding:9px 12px; border-bottom:1px solid #f1f5f9; }
 .chart-wrap { position:relative; height:320px; }
 .two-col { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
 @media (max-width:900px) { .two-col { grid-template-columns:1fr; } }
-.summary-box { border-radius:10px; padding:16px 20px; margin-top:16px; line-height:1.6; font-size:0.92rem; }
-.summary-warn { background:#fffbeb; border:1px solid #fde68a; color:#92400e; }
+table { width:100%; border-collapse:collapse; font-size:0.83rem; }
+th { background:#f8fafc; padding:9px 10px; text-align:left; font-weight:600; color:#475569; border-bottom:2px solid #e2e8f0; }
+td { padding:8px 10px; border-bottom:1px solid #f1f5f9; }
+.summary-box { border-radius:10px; padding:16px 20px; margin-top:16px; line-height:1.6; font-size:0.9rem; }
 .summary-info { background:#eff6ff; border:1px solid #bfdbfe; color:#1e40af; }
+.summary-warn { background:#fffbeb; border:1px solid #fde68a; color:#92400e; }
 .summary-danger { background:#fef2f2; border:1px solid #fecaca; color:#991b1b; }
-.arrow { font-size:1.3rem; vertical-align:middle; }
-.comparison { display:flex; align-items:center; gap:8px; justify-content:center; }
-.comparison .from { color:#64748b; font-size:0.9rem; }
-.comparison .to { font-weight:700; font-size:1.1rem; }
+.summary-good { background:#f0fdf4; border:1px solid #bbf7d0; color:#166534; }
+
+/* Slider controls */
+.control-panel { background:linear-gradient(135deg,#1e293b,#334155); border-radius:14px; padding:28px 32px; margin-bottom:28px; color:#fff; }
+.control-panel h2 { color:#fff; margin-bottom:20px; font-size:1.2rem; }
+.slider-row { display:flex; align-items:center; gap:16px; margin-bottom:12px; }
+.slider-row label { min-width:200px; font-size:0.9rem; color:#cbd5e1; }
+.slider-row input[type=range] { flex:1; height:8px; -webkit-appearance:none; appearance:none; background:#475569; border-radius:4px; outline:none; cursor:pointer; }
+.slider-row input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:22px; height:22px; background:#3b82f6; border-radius:50%; border:3px solid #fff; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.3); }
+.slider-row input[type=range]::-moz-range-thumb { width:22px; height:22px; background:#3b82f6; border-radius:50%; border:3px solid #fff; cursor:pointer; }
+.slider-value { min-width:70px; text-align:center; font-size:1.3rem; font-weight:700; color:#60a5fa; }
+.direction-label { text-align:center; color:#94a3b8; font-size:0.82rem; margin-top:4px; }
 </style>
 </head>
 <body>
-<h1>🏭 Transfer Scenario: 50 Workers Asia → Germany</h1>
-<p class="subtitle">Impact on both factories · 6-month projection from May 2026 · No additional hiring assumed</p>
+<h1>🏭 Interactive Factory Transfer Simulator</h1>
+<p class="subtitle">Drag the slider to explore how transferring workers between factories affects fulfillment · 6-month projection</p>
 
-<!-- KPI Summary -->
+<!-- Control Panel -->
+<div class="control-panel">
+  <h2>⚙️ Transfer Controls</h2>
+  <div class="slider-row">
+    <label>Workers to transfer:</label>
+    <input type="range" id="transferSlider" min="-50" max="100" value="0" step="5">
+    <div class="slider-value" id="transferValue">0</div>
+  </div>
+  <div class="direction-label" id="directionLabel">No transfer — showing baseline projections</div>
+</div>
+
+<!-- KPIs -->
 <div class="kpi-row">
   <div class="kpi">
-    <div class="label">🇩🇪 Germany Current</div>
-    <div class="value critical">62.6%</div>
-    <div class="detail">Apr 2026 · 257 workers</div>
+    <div class="label">🇩🇪 Germany Headcount</div>
+    <div class="value" id="kpiDeHead">257</div>
+    <div class="detail" id="kpiDeHeadDelta"></div>
   </div>
   <div class="kpi">
-    <div class="label">🇩🇪 Germany +50 Plateau</div>
-    <div class="value at-risk">82.2%</div>
-    <div class="detail"><span class="zone-badge zone-at-risk">🟡 At Risk</span> by Aug</div>
+    <div class="label">🇩🇪 Germany Plateau</div>
+    <div class="value" id="kpiDePlateau">67.3%</div>
+    <div class="detail" id="kpiDeZone"></div>
   </div>
   <div class="kpi">
-    <div class="label">🌏 Asia Current</div>
-    <div class="value critical">60.7%</div>
-    <div class="detail">Apr 2026 · 200 workers</div>
+    <div class="label">🌏 Asia Headcount</div>
+    <div class="value" id="kpiAsiaHead">200</div>
+    <div class="detail" id="kpiAsiaHeadDelta"></div>
   </div>
   <div class="kpi">
-    <div class="label">🌏 Asia −50 Plateau</div>
-    <div class="value critical">47.0%</div>
-    <div class="detail"><span class="zone-badge zone-critical">🔴 Critical</span></div>
+    <div class="label">🌏 Asia Plateau</div>
+    <div class="value" id="kpiAsiaPlateau">65.0%</div>
+    <div class="detail" id="kpiAsiaZone"></div>
+  </div>
+  <div class="kpi">
+    <div class="label">📊 Combined Avg</div>
+    <div class="value" id="kpiCombined">66.1%</div>
+    <div class="detail" id="kpiCombZone"></div>
   </div>
 </div>
 
-<!-- Side by side charts -->
+<!-- Charts -->
 <div class="two-col">
   <div class="card">
-    <h2>🇩🇪 Germany Factory (Receiving +50)</h2>
+    <h2>🇩🇪 Germany Factory</h2>
     <div class="chart-wrap"><canvas id="germanyChart"></canvas></div>
   </div>
   <div class="card">
-    <h2>🌏 Asia Factory (Sending −50)</h2>
+    <h2>🌏 Asia Factory</h2>
     <div class="chart-wrap"><canvas id="asiaChart"></canvas></div>
   </div>
 </div>
 
-<!-- Combined overlay chart -->
+<!-- Combined -->
 <div class="card">
-  <h2>📊 Combined View: Baseline vs Transfer Scenario</h2>
+  <h2>📊 Combined Fulfillment Trajectories</h2>
   <div class="chart-wrap"><canvas id="combinedChart"></canvas></div>
 </div>
 
-<!-- Projection Tables -->
+<!-- Tables -->
 <div class="two-col">
   <div class="card">
-    <h2>🇩🇪 Germany — Month-by-Month</h2>
+    <h2>🇩🇪 Germany — Projection</h2>
     <table>
-      <thead><tr><th>Month</th><th>Headcount</th><th>Baseline</th><th>+50 Transfer</th><th>Zone</th></tr></thead>
-      <tbody>
-        <tr><td>May 2026</td><td>307</td><td>64.7%</td><td>65.7%</td><td><span class="zone-badge zone-critical">🔴</span></td></tr>
-        <tr><td>Jun 2026</td><td>307</td><td>66.4%</td><td>70.9%</td><td><span class="zone-badge zone-at-risk">🟡</span></td></tr>
-        <tr><td>Jul 2026</td><td>307</td><td>67.3%</td><td>77.6%</td><td><span class="zone-badge zone-at-risk">🟡</span></td></tr>
-        <tr><td>Aug 2026</td><td>307</td><td>67.3%</td><td>82.2%</td><td><span class="zone-badge zone-at-risk">🟡</span></td></tr>
-        <tr><td>Sep 2026</td><td>307</td><td>67.3%</td><td>82.2%</td><td><span class="zone-badge zone-at-risk">🟡</span></td></tr>
-        <tr><td>Oct 2026</td><td>307</td><td>67.3%</td><td>82.2%</td><td><span class="zone-badge zone-at-risk">🟡</span></td></tr>
-      </tbody>
+      <thead><tr><th>Month</th><th>New</th><th>1-mo</th><th>2-mo</th><th>Tenured</th><th>Total</th><th>Fulfillment</th><th>Zone</th></tr></thead>
+      <tbody id="deTable"></tbody>
     </table>
   </div>
   <div class="card">
-    <h2>🌏 Asia — Month-by-Month</h2>
+    <h2>🌏 Asia — Projection</h2>
     <table>
-      <thead><tr><th>Month</th><th>Headcount</th><th>Baseline</th><th>−50 Transfer</th><th>Zone</th></tr></thead>
-      <tbody>
-        <tr><td>May 2026</td><td>150</td><td>63.2%</td><td>45.2%</td><td><span class="zone-badge zone-critical">🔴</span></td></tr>
-        <tr><td>Jun 2026</td><td>150</td><td>64.3%</td><td>46.3%</td><td><span class="zone-badge zone-critical">🔴</span></td></tr>
-        <tr><td>Jul 2026</td><td>150</td><td>65.0%</td><td>47.0%</td><td><span class="zone-badge zone-critical">🔴</span></td></tr>
-        <tr><td>Aug 2026</td><td>150</td><td>65.0%</td><td>47.0%</td><td><span class="zone-badge zone-critical">🔴</span></td></tr>
-        <tr><td>Sep 2026</td><td>150</td><td>65.0%</td><td>47.0%</td><td><span class="zone-badge zone-critical">🔴</span></td></tr>
-        <tr><td>Oct 2026</td><td>150</td><td>65.0%</td><td>47.0%</td><td><span class="zone-badge zone-critical">🔴</span></td></tr>
-      </tbody>
+      <thead><tr><th>Month</th><th>New</th><th>1-mo</th><th>2-mo</th><th>Tenured</th><th>Total</th><th>Fulfillment</th><th>Zone</th></tr></thead>
+      <tbody id="asiaTable"></tbody>
     </table>
   </div>
 </div>
 
-<!-- Summary -->
+<!-- Dynamic summary -->
 <div class="card">
-  <h2>💡 Analysis & Recommendation</h2>
-  <div class="summary-info">
-    <strong>Germany gains significantly:</strong> Transferring 50 workers gets Germany from 67.3% → 82.2% fulfillment at plateau (August onward). It clears the 70% threshold by <strong>June 2026</strong> (one month after transfer). The transferred workers enter as new hires and take 3 months to reach full productivity in the new environment.
-  </div>
-  <div class="summary-danger" style="margin-top:12px;">
-    <strong>⚠️ Asia takes a severe hit:</strong> Losing 50 tenured workers drops Asia from 65.0% → 47.0% — a catastrophic decline well into 🔴 Critical territory. Asia is already below the 70% target and this would make it drastically worse.
-  </div>
-  <div class="summary-warn" style="margin-top:12px;">
-    <strong>Net assessment:</strong> While this transfer successfully fixes Germany, it creates a worse problem at Asia. Combined average fulfillment actually <em>drops</em> from ~66.1% (both baseline) to ~64.6% (transfer scenario). Consider a smaller transfer (20–25 workers) or pursuing the longer-lead net-new hiring process to avoid robbing Peter to pay Paul.
-  </div>
+  <h2>💡 Assessment</h2>
+  <div id="summaryBox" class="summary-box summary-info"></div>
 </div>
 
 <script>
-const months = ['May-26','Jun-26','Jul-26','Aug-26','Sep-26','Oct-26'];
-const deBaseline = [64.73,66.44,67.27,67.27,67.27,67.27];
-const deTransfer = [65.65,70.86,77.59,82.20,82.20,82.20];
-const asiaBaseline = [63.18,64.25,64.98,64.98,64.98,64.98];
-const asiaTransfer = [45.22,46.29,47.03,47.03,47.03,47.03];
+// Model parameters
+const DE_COEF = { new_hires: 0.0184, workers_1mo: 0.0884, workers_2mo: 0.2065, tenured: 0.2987 };
+const DE_INTERCEPT = -9.4982;
+const ASIA_COEF = { new_hires: 0.0077, workers_1mo: 0.1611, workers_2mo: 0.2365, tenured: 0.3592 };
+const ASIA_INTERCEPT = -6.8519;
 
-function makeChart(canvasId, baseline, scenario, baseLabel, scenLabel, title) {
-  const ctx = document.getElementById(canvasId).getContext('2d');
-  new Chart(ctx, {
+// April 2026 starting state
+const DE_START = { new_hires: 9, workers_1mo: 7, workers_2mo: 10, tenured: 231 };
+const ASIA_START = { new_hires: 6, workers_1mo: 5, workers_2mo: 6, tenured: 183 };
+
+const MONTHS = ['May-26','Jun-26','Jul-26','Aug-26','Sep-26','Oct-26'];
+
+function predict(coef, intercept, state) {
+  return coef.new_hires * state.new_hires + coef.workers_1mo * state.workers_1mo +
+         coef.workers_2mo * state.workers_2mo + coef.tenured * state.tenured + intercept;
+}
+
+function projectFactory(coef, intercept, startState, transferIn, transferOut) {
+  // transferIn: workers arriving as new_hires in month 0
+  // transferOut: tenured workers leaving before month 0
+  let n = startState.new_hires;
+  let w1 = startState.workers_1mo;
+  let w2 = startState.workers_2mo;
+  let t = startState.tenured - transferOut;
+
+  const results = [];
+  for (let i = 0; i < 6; i++) {
+    const prev_n = n, prev_w1 = w1, prev_w2 = w2;
+    n = (i === 0) ? transferIn : 0;
+    w1 = prev_n;
+    w2 = prev_w1;
+    t = t + prev_w2;
+    const total = n + w1 + w2 + t;
+    const pct = predict(coef, intercept, { new_hires: n, workers_1mo: w1, workers_2mo: w2, tenured: t });
+    results.push({ month: MONTHS[i], n, w1, w2, t, total, pct });
+  }
+  return results;
+}
+
+function getZone(pct) {
+  if (pct >= 85) return { text: '🟢 On Track', cls: 'on-track', badge: 'zone-on-track' };
+  if (pct >= 70) return { text: '🟡 At Risk', cls: 'at-risk', badge: 'zone-at-risk' };
+  return { text: '🔴 Critical', cls: 'critical', badge: 'zone-critical' };
+}
+
+// Charts
+let germanyChart, asiaChart, combinedChart;
+
+function initCharts() {
+  const opts = (yMin) => ({
+    responsive: true, maintainAspectRatio: false,
+    animation: { duration: 300 },
+    plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 12, font: { size: 11 } } } },
+    scales: { y: { min: yMin, max: 95, title: { display: true, text: 'Fulfillment %' } }, x: { title: { display: true, text: 'Month' } } }
+  });
+
+  germanyChart = new Chart(document.getElementById('germanyChart').getContext('2d'), {
     type: 'line',
-    data: {
-      labels: months,
-      datasets: [
-        { label: baseLabel, data: baseline, borderColor: '#94a3b8', borderWidth: 2, borderDash:[5,4], pointRadius:3, tension:0.3 },
-        { label: scenLabel, data: scenario, borderColor: '#3b82f6', borderWidth: 2.5, pointRadius:4, tension:0.3 },
-        { label: '70% Target', data: Array(6).fill(70), borderColor: '#dc2626', borderWidth:1.5, borderDash:[8,4], pointRadius:0 },
-        { label: '85% On Track', data: Array(6).fill(85), borderColor: '#16a34a', borderWidth:1.5, borderDash:[8,4], pointRadius:0 }
-      ]
-    },
-    options: {
-      responsive:true, maintainAspectRatio:false,
-      plugins: { legend:{position:'bottom',labels:{usePointStyle:true,padding:12,font:{size:11}}} },
-      scales: { y:{min:40,max:90,title:{display:true,text:'Fulfillment %'}}, x:{title:{display:true,text:'Month'}} }
-    }
+    data: { labels: MONTHS, datasets: [
+      { label: 'Projected', data: [], borderColor: '#2563eb', borderWidth: 2.5, pointRadius: 4, tension: 0.3 },
+      { label: '70% Target', data: Array(6).fill(70), borderColor: '#dc2626', borderWidth: 1.5, borderDash: [8,4], pointRadius: 0 },
+      { label: '85% On Track', data: Array(6).fill(85), borderColor: '#16a34a', borderWidth: 1.5, borderDash: [8,4], pointRadius: 0 }
+    ]},
+    options: opts(35)
+  });
+
+  asiaChart = new Chart(document.getElementById('asiaChart').getContext('2d'), {
+    type: 'line',
+    data: { labels: MONTHS, datasets: [
+      { label: 'Projected', data: [], borderColor: '#ea580c', borderWidth: 2.5, pointRadius: 4, tension: 0.3 },
+      { label: '70% Target', data: Array(6).fill(70), borderColor: '#dc2626', borderWidth: 1.5, borderDash: [8,4], pointRadius: 0 },
+      { label: '85% On Track', data: Array(6).fill(85), borderColor: '#16a34a', borderWidth: 1.5, borderDash: [8,4], pointRadius: 0 }
+    ]},
+    options: opts(35)
+  });
+
+  combinedChart = new Chart(document.getElementById('combinedChart').getContext('2d'), {
+    type: 'line',
+    data: { labels: MONTHS, datasets: [
+      { label: 'Germany', data: [], borderColor: '#2563eb', borderWidth: 2.5, pointRadius: 4, tension: 0.3 },
+      { label: 'Asia', data: [], borderColor: '#ea580c', borderWidth: 2.5, pointRadius: 4, tension: 0.3 },
+      { label: '70% Target', data: Array(6).fill(70), borderColor: '#dc2626', borderWidth: 1.5, borderDash: [8,4], pointRadius: 0 },
+      { label: '85% On Track', data: Array(6).fill(85), borderColor: '#16a34a', borderWidth: 1.5, borderDash: [8,4], pointRadius: 0 }
+    ]},
+    options: opts(35)
   });
 }
 
-makeChart('germanyChart', deBaseline, deTransfer, 'Baseline (no transfer)', 'With +50 workers', 'Germany');
-makeChart('asiaChart', asiaBaseline, asiaTransfer, 'Baseline (no transfer)', 'With −50 workers', 'Asia');
+function updateAll(transfer) {
+  // Positive transfer = Asia → Germany; Negative = Germany → Asia
+  const deIn = Math.max(0, transfer);
+  const deOut = Math.max(0, -transfer);
+  const asiaIn = Math.max(0, -transfer);
+  const asiaOut = Math.max(0, transfer);
 
-// Combined chart
-const ctx3 = document.getElementById('combinedChart').getContext('2d');
-new Chart(ctx3, {
-  type: 'line',
-  data: {
-    labels: months,
-    datasets: [
-      { label: 'Germany Baseline', data: deBaseline, borderColor: '#93c5fd', borderWidth:2, borderDash:[5,4], pointRadius:2, tension:0.3 },
-      { label: 'Germany +50', data: deTransfer, borderColor: '#2563eb', borderWidth:2.5, pointRadius:4, tension:0.3 },
-      { label: 'Asia Baseline', data: asiaBaseline, borderColor: '#fdba74', borderWidth:2, borderDash:[5,4], pointRadius:2, tension:0.3 },
-      { label: 'Asia −50', data: asiaTransfer, borderColor: '#ea580c', borderWidth:2.5, pointRadius:4, tension:0.3 },
-      { label: '70% Target', data: Array(6).fill(70), borderColor: '#dc2626', borderWidth:1.5, borderDash:[8,4], pointRadius:0 },
-    ]
-  },
-  options: {
-    responsive:true, maintainAspectRatio:false,
-    plugins: { legend:{position:'bottom',labels:{usePointStyle:true,padding:12,font:{size:11}}} },
-    scales: { y:{min:40,max:90,title:{display:true,text:'Fulfillment %'}}, x:{title:{display:true,text:'Month'}} }
+  const deResults = projectFactory(DE_COEF, DE_INTERCEPT, DE_START, deIn, deOut);
+  const asiaResults = projectFactory(ASIA_COEF, ASIA_INTERCEPT, ASIA_START, asiaIn, asiaOut);
+
+  const deVals = deResults.map(r => r.pct);
+  const asiaVals = asiaResults.map(r => r.pct);
+
+  // Update charts
+  germanyChart.data.datasets[0].data = deVals;
+  germanyChart.update();
+  asiaChart.data.datasets[0].data = asiaVals;
+  asiaChart.update();
+  combinedChart.data.datasets[0].data = deVals;
+  combinedChart.data.datasets[1].data = asiaVals;
+  combinedChart.update();
+
+  // KPIs
+  const dePlateau = deVals[deVals.length - 1];
+  const asiaPlateau = asiaVals[asiaVals.length - 1];
+  const combined = (dePlateau + asiaPlateau) / 2;
+  const deTotal = deResults[0].total;
+  const asiaTotal = asiaResults[0].total;
+
+  const deZone = getZone(dePlateau);
+  const asiaZone = getZone(asiaPlateau);
+  const combZone = getZone(combined);
+
+  document.getElementById('kpiDeHead').textContent = deTotal;
+  document.getElementById('kpiDeHeadDelta').textContent = transfer > 0 ? `+${transfer} from Asia` : transfer < 0 ? `${transfer} to Asia` : 'No change';
+  document.getElementById('kpiDePlateau').textContent = dePlateau.toFixed(1) + '%';
+  document.getElementById('kpiDePlateau').className = 'value ' + deZone.cls;
+  document.getElementById('kpiDeZone').innerHTML = `<span class="zone-badge ${deZone.badge}">${deZone.text}</span>`;
+
+  document.getElementById('kpiAsiaHead').textContent = asiaTotal;
+  document.getElementById('kpiAsiaHeadDelta').textContent = transfer > 0 ? `-${transfer} to Germany` : transfer < 0 ? `+${-transfer} from Germany` : 'No change';
+  document.getElementById('kpiAsiaPlateau').textContent = asiaPlateau.toFixed(1) + '%';
+  document.getElementById('kpiAsiaPlateau').className = 'value ' + asiaZone.cls;
+  document.getElementById('kpiAsiaZone').innerHTML = `<span class="zone-badge ${asiaZone.badge}">${asiaZone.text}</span>`;
+
+  document.getElementById('kpiCombined').textContent = combined.toFixed(1) + '%';
+  document.getElementById('kpiCombined').className = 'value ' + combZone.cls;
+  document.getElementById('kpiCombZone').innerHTML = `<span class="zone-badge ${combZone.badge}">${combZone.text}</span>`;
+
+  // Tables
+  let deHtml = '', asiaHtml = '';
+  for (const r of deResults) {
+    const z = getZone(r.pct);
+    deHtml += `<tr><td>${r.month}</td><td>${r.n}</td><td>${r.w1}</td><td>${r.w2}</td><td>${r.t}</td><td>${r.total}</td><td>${r.pct.toFixed(1)}%</td><td><span class="zone-badge ${z.badge}">${z.text}</span></td></tr>`;
   }
+  for (const r of asiaResults) {
+    const z = getZone(r.pct);
+    asiaHtml += `<tr><td>${r.month}</td><td>${r.n}</td><td>${r.w1}</td><td>${r.w2}</td><td>${r.t}</td><td>${r.total}</td><td>${r.pct.toFixed(1)}%</td><td><span class="zone-badge ${z.badge}">${z.text}</span></td></tr>`;
+  }
+  document.getElementById('deTable').innerHTML = deHtml;
+  document.getElementById('asiaTable').innerHTML = asiaHtml;
+
+  // Direction label
+  const dirLabel = document.getElementById('directionLabel');
+  if (transfer > 0) dirLabel.textContent = `Transferring ${transfer} workers from Asia → Germany`;
+  else if (transfer < 0) dirLabel.textContent = `Transferring ${-transfer} workers from Germany → Asia`;
+  else dirLabel.textContent = 'No transfer — showing baseline projections';
+
+  // Summary
+  const summaryBox = document.getElementById('summaryBox');
+  let summaryClass = 'summary-info';
+  let summaryText = '';
+
+  if (transfer === 0) {
+    summaryText = `<strong>Baseline:</strong> Both factories remain in 🔴 Critical territory. Germany plateaus at ${dePlateau.toFixed(1)}% and Asia at ${asiaPlateau.toFixed(1)}%. Neither meets the 70% target without intervention.`;
+    summaryClass = 'summary-danger';
+  } else {
+    const deHits70 = deVals.findIndex(v => v >= 70);
+    const asiaHits70 = asiaVals.findIndex(v => v >= 70);
+    const deBelowTarget = dePlateau < 70;
+    const asiaBelowTarget = asiaPlateau < 70;
+
+    if (!deBelowTarget && !asiaBelowTarget) {
+      summaryText = `<strong>✅ Both factories above 70%!</strong> Germany reaches ${dePlateau.toFixed(1)}% and Asia reaches ${asiaPlateau.toFixed(1)}%. This transfer level achieves the target for both sites.`;
+      summaryClass = 'summary-good';
+    } else if (!deBelowTarget && asiaBelowTarget) {
+      summaryText = `<strong>⚠️ Trade-off:</strong> Germany reaches ${dePlateau.toFixed(1)}% (${deZone.text}) — clears 70%` + (deHits70 >= 0 ? ` by ${MONTHS[deHits70]}` : '') + `. However, Asia drops to ${asiaPlateau.toFixed(1)}% (${asiaZone.text}). Consider a smaller transfer to balance both.`;
+      summaryClass = asiaPlateau < 50 ? 'summary-danger' : 'summary-warn';
+    } else if (deBelowTarget && !asiaBelowTarget) {
+      summaryText = `<strong>⚠️ Trade-off:</strong> Asia reaches ${asiaPlateau.toFixed(1)}% (${asiaZone.text}) but Germany falls to ${dePlateau.toFixed(1)}% (${deZone.text}). This transfer direction hurts Germany.`;
+      summaryClass = dePlateau < 50 ? 'summary-danger' : 'summary-warn';
+    } else {
+      summaryText = `<strong>❌ Neither factory reaches 70%.</strong> Germany: ${dePlateau.toFixed(1)}%, Asia: ${asiaPlateau.toFixed(1)}%. This transfer level is insufficient for either site to meet target. Consider net-new hiring.`;
+      summaryClass = 'summary-danger';
+    }
+    summaryText += `<br><br><strong>Combined average:</strong> ${combined.toFixed(1)}% (baseline was 66.1%).`;
+  }
+  summaryBox.innerHTML = summaryText;
+  summaryBox.className = 'summary-box ' + summaryClass;
+}
+
+// Slider
+const slider = document.getElementById('transferSlider');
+const valueDisplay = document.getElementById('transferValue');
+slider.addEventListener('input', function() {
+  const val = parseInt(this.value);
+  valueDisplay.textContent = val > 0 ? '+' + val : val;
+  updateAll(val);
 });
+
+// Init
+initCharts();
+updateAll(0);
 </script>
 </body>
 </html>
