@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factory A (Germany) — Delivery Performance Forecast</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f7fa; color: #1a1a2e; padding: 2rem; }
+        .header { text-align: center; margin-bottom: 2rem; }
+        .header h1 { font-size: 1.8rem; color: #1a1a2e; margin-bottom: 0.5rem; }
+        .header p { color: #666; font-size: 0.95rem; }
+        .dashboard { max-width: 1200px; margin: 0 auto; }
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .card { background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .card .label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: #888; margin-bottom: 0.5rem; }
+        .card .value { font-size: 2rem; font-weight: 700; }
+        .card .sub { font-size: 0.85rem; color: #666; margin-top: 0.25rem; }
+        .critical { color: #dc3545; }
+        .at-risk { color: #f0ad4e; }
+        .on-track { color: #28a745; }
+        .chart-container { background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 2rem; }
+        .chart-container h2 { font-size: 1.2rem; margin-bottom: 1rem; color: #333; }
+        .summary { background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 2rem; }
+        .summary h2 { font-size: 1.2rem; margin-bottom: 1rem; }
+        .summary p { line-height: 1.7; color: #444; margin-bottom: 0.75rem; }
+        .recommendation { background: #fff3cd; border-left: 4px solid #f0ad4e; padding: 1rem 1.5rem; border-radius: 0 8px 8px 0; margin-top: 1rem; }
+        .recommendation strong { color: #856404; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { padding: 0.6rem 1rem; text-align: left; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+        th { background: #f8f9fa; font-weight: 600; color: #555; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+        .badge-critical { background: #f8d7da; color: #721c24; }
+        .badge-at-risk { background: #fff3cd; color: #856404; }
+        .badge-on-track { background: #d4edda; color: #155724; }
+        .model-info { background: #e8f4fd; border-radius: 8px; padding: 1rem 1.5rem; margin-bottom: 2rem; font-size: 0.85rem; color: #1a5276; }
+        .model-info code { background: #d1ecf1; padding: 2px 6px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <h1>🏭 Factory A (Germany) — Delivery Performance Forecast</h1>
+            <p>Linear regression model on headcount composition | Data: May 2024 – April 2026</p>
+        </div>
+
+        <div class="cards">
+            <div class="card">
+                <div class="label">Current Fulfillment (Apr 2026)</div>
+                <div class="value critical">62.6%</div>
+                <div class="sub">🔴 Critical (&lt;70%)</div>
+            </div>
+            <div class="card">
+                <div class="label">Projected May 2026</div>
+                <div class="value critical">64.7%</div>
+                <div class="sub">🔴 Critical — below 70% target</div>
+            </div>
+            <div class="card">
+                <div class="label">Plateau (No Hiring)</div>
+                <div class="value critical">67.3%</div>
+                <div class="sub">🔴 Still critical by July 2026</div>
+            </div>
+            <div class="card">
+                <div class="label">Workers Needed for 70%</div>
+                <div class="value at-risk">+18</div>
+                <div class="sub">Experienced/tenured transfers</div>
+            </div>
+        </div>
+
+        <div class="model-info">
+            <strong>Model:</strong> <code>fulfillment_pct = -9.50 + 0.018×new_hires + 0.088×workers_1mo + 0.207×workers_2mo + 0.299×tenured</code>
+            &nbsp;|&nbsp; R² = 0.946 &nbsp;|&nbsp; MAE = 0.50%
+        </div>
+
+        <div class="chart-container">
+            <h2>Historical & Projected Fulfillment Rate</h2>
+            <canvas id="forecastChart" height="100"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <h2>Backtest: Model Predicted vs Actual</h2>
+            <canvas id="backtestChart" height="80"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <h2>6-Month Projection Table</h2>
+            <table>
+                <thead>
+                    <tr><th>Month</th><th>New Hires</th><th>1-Mo Workers</th><th>2-Mo Workers</th><th>Tenured</th><th>Total</th><th>Projected %</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>May 2026</td><td>0</td><td>9</td><td>7</td><td>241</td><td>257</td><td>64.7%</td><td><span class="badge badge-critical">Critical</span></td></tr>
+                    <tr><td>Jun 2026</td><td>0</td><td>0</td><td>9</td><td>248</td><td>257</td><td>66.4%</td><td><span class="badge badge-critical">Critical</span></td></tr>
+                    <tr><td>Jul 2026</td><td>0</td><td>0</td><td>0</td><td>257</td><td>257</td><td>67.3%</td><td><span class="badge badge-critical">Critical</span></td></tr>
+                    <tr><td>Aug 2026</td><td>0</td><td>0</td><td>0</td><td>257</td><td>257</td><td>67.3%</td><td><span class="badge badge-critical">Critical</span></td></tr>
+                    <tr><td>Sep 2026</td><td>0</td><td>0</td><td>0</td><td>257</td><td>257</td><td>67.3%</td><td><span class="badge badge-critical">Critical</span></td></tr>
+                    <tr><td>Oct 2026</td><td>0</td><td>0</td><td>0</td><td>257</td><td>257</td><td>67.3%</td><td><span class="badge badge-critical">Critical</span></td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="summary">
+            <h2>📋 Analysis Summary</h2>
+            <p><strong>At current headcount (257 workers), the Germany factory is projected to fulfill approximately 64.7% of orders on time in May 2026, placing it in the 🔴 Critical zone.</strong> Even as recent hires gain experience over the next few months, fulfillment plateaus at ~67.3% — still below your 70% minimum threshold.</p>
+            <p>The model shows that tenured workers (3+ months experience) are by far the strongest driver of on-time delivery (coefficient: 0.299 per worker), while brand-new hires contribute almost nothing immediately (0.018). This means simply hiring new workers won't help next month — you need experienced hands.</p>
+            <div class="recommendation">
+                <strong>⚠️ Recommendation:</strong> You need to add at least <strong>18 experienced/tenured workers</strong> to the Germany factory to reach the 70% fulfillment threshold next month. Given the fixed 450-person pool across both sites, this would mean transferring ~18 tenured workers from the Asia factory (reducing it from ~200 to ~182). With this transfer, Germany would project at 70.1% in May and climb to ~72.6% by July as remaining newer workers gain tenure. However, note this would likely impact Asia factory performance — a trade-off worth evaluating.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Historical data
+        const historicalMonths = ['May-24','Jun-24','Jul-24','Aug-24','Sep-24','Oct-24','Nov-24','Dec-24','Jan-25','Feb-25','Mar-25','Apr-25','May-25','Jun-25','Jul-25','Aug-25','Sep-25','Oct-25','Nov-25','Dec-25','Jan-26','Feb-26','Mar-26','Apr-26'];
+        const actualData = [60.67,60.99,57.54,57.32,58.66,61.91,63.61,60.41,59.80,59.23,58.25,61.35,63.20,66.32,65.61,63.12,61.58,62.84,62.57,65.85,66.67,64.80,63.31,62.63];
+        const predictedHistorical = [61.61,59.58,58.17,57.49,58.58,61.06,62.41,60.99,60.42,58.75,58.92,60.98,63.84,66.38,65.46,63.63,62.25,62.11,63.09,65.73,66.58,64.82,63.05,62.34];
+
+        // Projected data
+        const projMonths = ['May-26','Jun-26','Jul-26','Aug-26','Sep-26','Oct-26'];
+        const projData = [64.72, 66.43, 67.26, 67.26, 67.26, 67.26];
+
+        const allMonths = [...historicalMonths, ...projMonths];
+        const allActual = [...actualData, ...Array(6).fill(null)];
+        const allProjected = [...Array(24).fill(null), ...projData];
+
+        // Forecast chart
+        new Chart(document.getElementById('forecastChart'), {
+            type: 'line',
+            data: {
+                labels: allMonths,
+                datasets: [
+                    {
+                        label: 'Actual Fulfillment %',
+                        data: allActual,
+                        borderColor: '#2c3e50',
+                        backgroundColor: 'rgba(44,62,80,0.1)',
+                        borderWidth: 2.5,
+                        pointRadius: 3,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Projected (No New Hiring)',
+                        data: allProjected,
+                        borderColor: '#dc3545',
+                        borderDash: [6, 4],
+                        borderWidth: 2.5,
+                        pointRadius: 4,
+                        pointStyle: 'triangle',
+                        tension: 0.3
+                    },
+                    {
+                        label: '70% Minimum Target',
+                        data: Array(30).fill(70),
+                        borderColor: '#f0ad4e',
+                        borderDash: [3, 3],
+                        borderWidth: 1.5,
+                        pointRadius: 0,
+                        fill: false
+                    },
+                    {
+                        label: '85% On-Track Threshold',
+                        data: Array(30).fill(85),
+                        borderColor: '#28a745',
+                        borderDash: [3, 3],
+                        borderWidth: 1.5,
+                        pointRadius: 0,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: { mode: 'index', intersect: false }
+                },
+                scales: {
+                    y: { min: 50, max: 90, title: { display: true, text: 'Fulfillment %' } },
+                    x: { title: { display: true, text: 'Month' } }
+                }
+            }
+        });
+
+        // Backtest chart
+        new Chart(document.getElementById('backtestChart'), {
+            type: 'line',
+            data: {
+                labels: historicalMonths,
+                datasets: [
+                    {
+                        label: 'Actual',
+                        data: actualData,
+                        borderColor: '#2c3e50',
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Model Predicted',
+                        data: predictedHistorical,
+                        borderColor: '#3498db',
+                        borderDash: [4, 3],
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'bottom' } },
+                scales: {
+                    y: { min: 55, max: 70, title: { display: true, text: 'Fulfillment %' } }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
