@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CEO Scenario — Move 50 Workers: Germany vs Asia</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f8f9fa; color: #1a1a2e; }
+  .header { background: #1a1a2e; color: #fff; padding: 24px 36px; }
+  .header h1 { font-size: 1.4rem; font-weight: 600; }
+  .header p { margin-top: 4px; font-size: 0.85rem; opacity: 0.65; }
+
+  .scenario-bar {
+    background: #fff; margin: 20px 36px 0; padding: 16px 20px;
+    border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    display: flex; gap: 32px; align-items: flex-start; flex-wrap: wrap;
+  }
+  .scenario-block { flex: 1; min-width: 200px; }
+  .scenario-block .factory-name { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #999; margin-bottom: 4px; }
+  .scenario-block .result { font-size: 1rem; font-weight: 600; }
+  .scenario-block .sub { font-size: 0.82rem; color: #555; margin-top: 3px; }
+  .badge { display: inline-block; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 7px; border-radius: 3px; margin-left: 6px; }
+  .badge-critical { background: #e53e3e; color: #fff; }
+  .badge-atrisk   { background: #d69e2e; color: #fff; }
+  .badge-ontrack  { background: #276749; color: #fff; }
+  .arrow { font-size: 1.1rem; color: #cbd5e0; padding: 0 6px; }
+  .divider-v { width: 1px; background: #e2e8f0; margin: 0 16px; }
+
+  .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 36px 36px; }
+  .chart-card { background: #fff; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); padding: 16px; }
+  .chart-card h3 { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #666; margin-bottom: 4px; }
+  .chart-card .chart-sub { font-size: 0.78rem; color: #999; margin-bottom: 10px; }
+
+  .legend-row { display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.75rem; color: #555; margin-bottom: 8px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-line { width: 20px; height: 2px; border-radius: 1px; }
+  .legend-line-dashed { border-top: 2px dashed; width: 20px; }
+
+  @media (max-width: 700px) { .charts { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>CEO Scenario — Transfer 50 Workers: Germany ↔ Asia</h1>
+  <p>Impact of moving 50 workers from the Asia factory to Germany, accounting for 3-month productivity ramp &nbsp;·&nbsp; As of April 2026</p>
+</div>
+
+<div class="scenario-bar">
+  <div class="scenario-block">
+    <div class="factory-name">Germany Factory (receives 50)</div>
+    <div class="result">
+      67% → 82%
+      <span class="badge badge-critical">Critical</span>
+      <span class="arrow">→</span>
+      <span class="badge badge-atrisk">At Risk</span>
+    </div>
+    <div class="sub">Crosses 70% threshold by June. Peaks at 82% once transfers fully ramp.</div>
+  </div>
+  <div class="divider-v"></div>
+  <div class="scenario-block">
+    <div class="factory-name">Asia Factory (loses 50)</div>
+    <div class="result">
+      65% → 47%
+      <span class="badge badge-critical">Critical</span>
+      <span class="arrow">→</span>
+      <span class="badge badge-critical">Critical ↓</span>
+    </div>
+    <div class="sub">Immediate drop as tenured workers depart. Stays deep in Critical zone.</div>
+  </div>
+</div>
+
+<div class="charts">
+  <!-- Germany -->
+  <div class="chart-card">
+    <h3>Germany Factory (Factory A)</h3>
+    <div class="chart-sub">Receives 50 workers — improvement delayed by ramp period</div>
+    <div class="legend-row">
+      <div class="legend-item"><div class="legend-line" style="background:#2d3748;"></div> Historical</div>
+      <div class="legend-item"><div class="legend-line-dashed" style="border-color:#a0aec0;"></div> No transfer</div>
+      <div class="legend-item"><div class="legend-line" style="background:#276749;"></div> With transfer</div>
+    </div>
+    <div id="chart-a" style="height:340px;"></div>
+  </div>
+
+  <!-- Asia -->
+  <div class="chart-card">
+    <h3>Asia Factory (Factory B)</h3>
+    <div class="chart-sub">Loses 50 workers — immediate impact on tenured pool</div>
+    <div class="legend-row">
+      <div class="legend-item"><div class="legend-line" style="background:#2d3748;"></div> Historical</div>
+      <div class="legend-item"><div class="legend-line-dashed" style="border-color:#a0aec0;"></div> No transfer</div>
+      <div class="legend-item"><div class="legend-line" style="background:#e53e3e;"></div> With transfer</div>
+    </div>
+    <div id="chart-b" style="height:340px;"></div>
+  </div>
+</div>
+
+<script>
+const data = {"hist_months": ["2024-05", "2024-06", "2024-07", "2024-08", "2024-09", "2024-10", "2024-11", "2024-12", "2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04"], "fac_a": {"actual": [60.67, 60.99, 57.54, 57.32, 58.66, 61.91, 63.61, 60.41, 59.8, 59.23, 58.25, 61.35, 63.2, 66.32, 65.61, 63.12, 61.58, 62.84, 62.57, 65.85, 66.67, 64.8, 63.31, 62.63], "proj_base": [64.72, 66.43, 67.26, 67.26, 67.26, 67.26], "proj_transfer": [69.14, 76.75, 82.19, 82.19, 82.19, 82.19]}, "fac_b": {"actual": [61.04, 60.7, 57.55, 57.55, 56.33, 58.29, 57.91, 59.73, 60.45, 59.58, 58.73, 58.39, 62.62, 63.51, 65.6, 65.41, 63.32, 62.79, 61.87, 64.14, 65.44, 64.04, 63.4, 60.72], "proj_base": [63.18, 64.25, 64.98, 64.98, 64.98, 64.98], "proj_transfer": [45.22, 46.29, 47.03, 47.03, 47.03, 47.03]}, "future_months": ["2026-05", "2026-06", "2026-07", "2026-08", "2026-09", "2026-10"]};
+
+const TODAY = "2026-04";
+const allMonths = [...data.hist_months, ...data.future_months];
+
+function zoneColor(pct) {
+  if (pct >= 85) return "#276749";
+  if (pct >= 70) return "#d69e2e";
+  return "#e53e3e";
+}
+
+function makeChart(divId, fac, transferColor, transferLabel, yRange) {
+  const lastHist = data.hist_months[data.hist_months.length - 1];
+
+  // Bridge: connect last historical to first projected
+  const bridge = [lastHist, ...data.future_months];
+
+  const traces = [
+    {
+      x: data.hist_months, y: fac.actual,
+      name: "Historical", mode: "lines+markers",
+      line: { color: "#2d3748", width: 2 },
+      marker: { size: 5, color: "#2d3748" },
+    },
+    {
+      x: [...bridge], y: [fac.actual[fac.actual.length-1], ...fac.proj_base],
+      name: "No transfer", mode: "lines",
+      line: { color: "#a0aec0", width: 1.8, dash: "dash" },
+    },
+    {
+      x: [...bridge], y: [fac.actual[fac.actual.length-1], ...fac.proj_transfer],
+      name: transferLabel, mode: "lines+markers",
+      line: { color: transferColor, width: 2.5 },
+      marker: {
+        size: 7, symbol: "diamond",
+        color: fac.proj_transfer.map(zoneColor),
+        line: { color: "#fff", width: 1 },
+      },
+    },
+    // Threshold lines
+    {
+      x: [data.hist_months[0], data.future_months[5]], y: [85, 85],
+      name: "On Track (85%)", mode: "lines", hoverinfo: "skip",
+      line: { color: "#276749", width: 1, dash: "dot" },
+    },
+    {
+      x: [data.hist_months[0], data.future_months[5]], y: [70, 70],
+      name: "Min. threshold (70%)", mode: "lines", hoverinfo: "skip",
+      line: { color: "#d69e2e", width: 1.5, dash: "dot" },
+    },
+  ];
+
+  const finalBase     = fac.proj_base[fac.proj_base.length - 1];
+  const finalTransfer = fac.proj_transfer[fac.proj_transfer.length - 1];
+
+  const shapes = [
+    {
+      type: "rect", xref: "x", yref: "paper",
+      x0: TODAY, x1: data.future_months[5],
+      y0: 0, y1: 1,
+      fillcolor: "rgba(0,0,0,0.03)", line: { width: 0 }, layer: "below",
+    },
+    {
+      type: "line", xref: "x", yref: "paper",
+      x0: TODAY, x1: TODAY, y0: 0, y1: 1,
+      line: { color: "#718096", width: 1.5, dash: "dot" },
+    },
+  ];
+
+  const annotations = [
+    { x: TODAY, y: 1.05, xref: "x", yref: "paper", text: "Today",
+      showarrow: false, font: { size: 10, color: "#718096" }, xanchor: "center" },
+    { x: data.future_months[5], y: finalBase, xref: "x", yref: "y",
+      text: `${finalBase}%`, showarrow: false,
+      font: { size: 10, color: "#718096" }, xanchor: "left", dx: 4 },
+    { x: data.future_months[5], y: finalTransfer, xref: "x", yref: "y",
+      text: `<b>${finalTransfer}%</b>`, showarrow: false,
+      font: { size: 11, color: transferColor }, xanchor: "left", dx: 4 },
+  ];
+
+  Plotly.newPlot(divId, traces, {
+    margin: { t: 10, r: 70, b: 55, l: 52 },
+    xaxis: { tickangle: -35, tickfont: { size: 10 }, gridcolor: "#f0f0f0" },
+    yaxis: { range: yRange, ticksuffix: "%", gridcolor: "#f0f0f0", tickfont: { size: 10 } },
+    legend: { orientation: "h", x: 0, y: -0.28, font: { size: 10 } },
+    shapes, annotations,
+    plot_bgcolor: "#fff", paper_bgcolor: "#fff",
+    hovermode: "x unified",
+  }, { responsive: true, displayModeBar: false });
+}
+
+makeChart("chart-a", data.fac_a, "#276749", "With transfer", [48, 92]);
+makeChart("chart-b", data.fac_b, "#e53e3e", "With transfer", [35, 80]);
+</script>
+</body>
+</html>
