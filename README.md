@@ -15,36 +15,22 @@ Demo assets for the NemoClaw supply chain AI walkthrough.
 The NemoClaw demo setup script caches values on the VM so repeated startup runs
 do not require retyping every key.
 
-Secret values are stored in plaintext on the VM at:
+Secret values (NVIDIA inference.nvidia.com key, Brave key, and Github PAT) are stored in plaintext on the VM at:
 
 ```text
 ~/.nemoclaw/exec-demo/secrets.tsv
 ```
-
-This file may contain values such as the NVIDIA inference API key, Brave Search
-API key, and GitHub token. It is written with restrictive local permissions
-(`chmod 600`), but it is still plaintext storage on the VM. Treat access to the
-VM account as access to those saved secrets.
-
-The cached secrets file is not copied into the OpenClaw sandboxes. During demo
-startup, the setup script reads the saved values on the VM and injects the
-needed credentials through OpenShell's provider/credential flow. For GitHub
-publishing, the sandbox Git credential uses an OpenShell placeholder such as:
-
-```text
-openshell:resolve:env:GITHUB_TOKEN
-```
-
-That lets the OpenClaw agent run normal `git clone`, `git commit`, and `git
-push` commands without storing the raw GitHub token in the sandbox workspace.
-Inference credentials are configured through the OpenShell gateway provider path
-instead of being copied from the cache file into this public demo repository.
 
 Non-secret setup values are cached separately on the VM at:
 
 ```text
 ~/.nemoclaw/exec-demo/env.tsv
 ```
+
+The cached secrets file is NOT accessible to the Openclaws. During demo
+startup, the setup script reads the saved values on the VM and injects the
+ credentials through OpenShell's provider/credential flow.
+
 
 This file is used for reusable operator inputs such as the GitHub dashboard repo
 URL, and can also be used for future non-secret settings such as a custom
