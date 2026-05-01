@@ -30,9 +30,5 @@ Non-secret setup values are cached separately on the VM at:
 The cached secrets file is NOT accessible to the Openclaws. During demo
 startup, the setup script reads the saved values on the VM and injects the
  credentials through OpenShell's provider/credential flow.
-
-
-This file is used for reusable operator inputs such as the GitHub dashboard repo
-URL, and can also be used for future non-secret settings such as a custom
 Cloudflare domain. These values are not API keys, but they are still local VM
 configuration and should not be committed unless intentionally documented.
