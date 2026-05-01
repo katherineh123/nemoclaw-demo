@@ -1429,6 +1429,35 @@ delete_remaining_openshell_sandboxes() {
       done <<< "$sandboxes"
 }
 
+wait_for_deleted_executive_resources() {
+  command_exists docker || return 0
+  docker ps --format '{{.Names}}' 2>/dev/null | grep -qx 'openshell-cluster-nemoclaw' || return 0
+
+  local attempt remaining
+  for attempt in $(seq 1 90); do
+    remaining="$(
+      {
+        docker exec openshell-cluster-nemoclaw kubectl get sandbox -n openshell -o name 2>/dev/null || true
+        docker exec openshell-cluster-nemoclaw kubectl get pods -n openshell -o name 2>/dev/null || true
+        docker exec openshell-cluster-nemoclaw kubectl get pvc -n openshell -o name 2>/dev/null || true
+      } | awk '
+        /\/exec-[0-9][0-9]$/ { print; next }
+        /\/workspace-exec-[0-9][0-9]$/ { print; next }
+      ' | sort -u
+    )"
+
+    [ -z "$remaining" ] && return 0
+    if [ "$attempt" = "1" ]; then
+      log "waiting for old executive sandbox Kubernetes resources to finish deleting"
+    fi
+    sleep 2
+  done
+
+  warn "old executive sandbox Kubernetes resources still exist after cleanup"
+  printf '%s\n' "$remaining" >&2
+  die "timed out waiting for old executive sandbox resources to delete"
+}
+
 clean_existing_state() {
   [ "$CLEAN_SLATE" = "1" ] || return 0
 
@@ -1442,6 +1471,7 @@ clean_existing_state() {
   destroy_existing_nemoclaw_sandboxes
   delete_remaining_openshell_sandboxes
   stop_existing_forwards
+  wait_for_deleted_executive_resources
 }
 
 used_forward_ports() {
