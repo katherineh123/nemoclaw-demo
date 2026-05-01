@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Factory Transfer Scenario — 50 Workers Asia → Germany</title>
+<title>Factory Transfer Simulator — Germany ↔ Asia</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -12,189 +12,287 @@ h1 { font-size: 1.6rem; margin-bottom: 0.3rem; }
 .subtitle { color: #666; margin-bottom: 2rem; font-size: 0.95rem; }
 .card { background: #fff; border-radius: 12px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
 .card h2 { font-size: 1.2rem; margin-bottom: 1rem; }
+.chart-container { position: relative; height: 300px; }
+.slider-section { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
+.slider-label { font-size: 1rem; font-weight: 600; min-width: 280px; }
+.slider-wrap { flex: 1; min-width: 200px; }
+input[type=range] { width: 100%; height: 8px; border-radius: 4px; outline: none; -webkit-appearance: none; background: #e2e8f0; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: #2563eb; cursor: pointer; border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: #2563eb; cursor: pointer; border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+.slider-value { font-size: 1.8rem; font-weight: 700; color: #2563eb; min-width: 80px; text-align: center; }
+.direction-note { font-size: 0.85rem; color: #666; margin-top: 0.5rem; }
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
 @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
-.chart-container { position: relative; height: 320px; }
-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-th, td { padding: 0.45rem 0.6rem; text-align: center; border-bottom: 1px solid #eee; }
-th { background: #f9fafb; font-weight: 600; }
-.zone-green { color: #16a34a; font-weight: 600; }
-.zone-yellow { color: #ca8a04; font-weight: 600; }
-.zone-red { color: #dc2626; font-weight: 600; }
-.summary-box { padding: 1rem 1.25rem; border-radius: 6px; margin-bottom: 1rem; border-left: 4px solid; }
-.summary-good { background: #f0fdf4; border-left-color: #16a34a; }
-.summary-warn { background: #fef3c7; border-left-color: #f59e0b; }
-.summary-bad { background: #fee2e2; border-left-color: #dc2626; }
-.tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; }
+.kpi-row { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.kpi { flex: 1; min-width: 140px; padding: 1rem; border-radius: 8px; text-align: center; }
+.kpi-germany { background: #eff6ff; border: 2px solid #2563eb; }
+.kpi-asia { background: #fffbeb; border: 2px solid #f59e0b; }
+.kpi-num { font-size: 1.8rem; font-weight: 700; }
+.kpi-label { font-size: 0.8rem; color: #555; margin-top: 0.2rem; }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; margin-top: 0.3rem; }
 .tag-green { background: #dcfce7; color: #16a34a; }
 .tag-yellow { background: #fef9c3; color: #a16207; }
 .tag-red { background: #fee2e2; color: #dc2626; }
-.vs { display: flex; gap: 1rem; align-items: stretch; margin-bottom: 1rem; }
-.vs > div { flex: 1; padding: 1rem; border-radius: 8px; text-align: center; }
-.vs-germany { background: #eff6ff; border: 2px solid #2563eb; }
-.vs-asia { background: #fef3c7; border: 2px solid #f59e0b; }
-.big-num { font-size: 2rem; font-weight: 700; }
-.big-label { font-size: 0.85rem; color: #555; }
+table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+th, td { padding: 0.4rem 0.5rem; text-align: center; border-bottom: 1px solid #eee; }
+th { background: #f9fafb; font-weight: 600; }
+.alert { padding: 0.75rem 1rem; border-radius: 6px; margin-bottom: 1rem; font-size: 0.9rem; border-left: 4px solid; }
+.alert-green { background: #f0fdf4; border-left-color: #16a34a; color: #166534; }
+.alert-yellow { background: #fefce8; border-left-color: #eab308; color: #854d0e; }
+.alert-red { background: #fef2f2; border-left-color: #dc2626; color: #991b1b; }
 </style>
 </head>
 <body>
-<h1>Transfer Scenario: Move 50 Workers from Asia → Germany</h1>
-<p class="subtitle">Impact analysis on both factories | 6-month projection from May 2026</p>
+<h1>Factory Transfer Simulator</h1>
+<p class="subtitle">Drag the slider to move workers between Germany and Asia — see real-time impact on fulfillment forecasts</p>
 
 <div class="card">
-<div class="summary-box summary-warn">
-<strong>⚠️ Mixed outcome:</strong> Transferring 50 workers from Asia to Germany would bring Germany <strong>above 70%</strong> fulfillment by June 2026 (reaching ~82% once all workers are tenured) — but it would <strong>devastate</strong> the Asia factory, dropping it to ~45–47% fulfillment, deep in the 🔴 Critical zone.
+<div class="slider-section">
+<div class="slider-label">Workers to transfer:<br><span class="direction-note" id="directionNote">← Asia to Germany →</span></div>
+<div class="slider-wrap">
+<input type="range" id="transferSlider" min="-100" max="100" value="0" step="1">
+<div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#888; margin-top:4px;">
+<span>← 100 to Asia</span><span>0 (no change)</span><span>100 to Germany →</span>
 </div>
-<div class="vs">
-<div class="vs-germany">
-<div class="big-num" style="color:#16a34a;">82.2%</div>
-<div class="big-label">Germany (plateau)</div>
-<span class="tag tag-green">🟢 On Track</span>
 </div>
-<div class="vs-asia">
-<div class="big-num" style="color:#dc2626;">47.0%</div>
-<div class="big-label">Asia (plateau)</div>
-<span class="tag tag-red">🔴 Critical</span>
-</div>
+<div class="slider-value" id="sliderValue">0</div>
 </div>
 </div>
 
-<div class="card">
-<h2>Germany Factory (Factory A) — With +50 Transfer</h2>
-<div class="chart-container"><canvas id="chartGermany"></canvas></div>
-</div>
+<div id="alertBox" class="alert alert-yellow" style="margin-top:1rem;">Adjust the slider to simulate headcount transfers.</div>
 
-<div class="card">
-<h2>Asia Factory (Factory B) — After -50 Transfer</h2>
-<div class="chart-container"><canvas id="chartAsia"></canvas></div>
+<div class="kpi-row">
+<div class="kpi kpi-germany">
+<div class="kpi-num" id="kpiGermanyHC">257</div>
+<div class="kpi-label">Germany Headcount</div>
+</div>
+<div class="kpi kpi-germany">
+<div class="kpi-num" id="kpiGermanyFulf">67.3%</div>
+<div class="kpi-label">Germany Plateau Fulf.</div>
+<div id="kpiGermanyZone" class="tag tag-red">🔴 Critical</div>
+</div>
+<div class="kpi kpi-asia">
+<div class="kpi-num" id="kpiAsiaHC">200</div>
+<div class="kpi-label">Asia Headcount</div>
+</div>
+<div class="kpi kpi-asia">
+<div class="kpi-num" id="kpiAsiaFulf">65.0%</div>
+<div class="kpi-label">Asia Plateau Fulf.</div>
+<div id="kpiAsiaZone" class="tag tag-red">🔴 Critical</div>
+</div>
 </div>
 
 <div class="grid">
 <div class="card">
-<h2>Germany — Projection Detail</h2>
-<table>
+<h2>🇩🇪 Germany Factory (Factory A)</h2>
+<div class="chart-container"><canvas id="chartGermany"></canvas></div>
+</div>
+<div class="card">
+<h2>🌏 Asia Factory (Factory B)</h2>
+<div class="chart-container"><canvas id="chartAsia"></canvas></div>
+</div>
+</div>
+
+<div class="grid">
+<div class="card">
+<h2>Germany — Monthly Breakdown</h2>
+<table id="tableGermany">
 <thead><tr><th>Month</th><th>Total</th><th>New</th><th>1mo</th><th>2mo</th><th>Ten.</th><th>Fulf.</th><th>Zone</th></tr></thead>
-<tbody>
-<tr><td>May-26</td><td>307</td><td>50</td><td>9</td><td>7</td><td>241</td><td>65.6%</td><td class="zone-red">🔴</td></tr>
-<tr><td>Jun-26</td><td>307</td><td>0</td><td>50</td><td>9</td><td>248</td><td>70.9%</td><td class="zone-yellow">🟡</td></tr>
-<tr><td>Jul-26</td><td>307</td><td>0</td><td>0</td><td>50</td><td>257</td><td>77.6%</td><td class="zone-yellow">🟡</td></tr>
-<tr><td>Aug-26</td><td>307</td><td>0</td><td>0</td><td>0</td><td>307</td><td>82.2%</td><td class="zone-yellow">🟡</td></tr>
-<tr><td>Sep-26</td><td>307</td><td>0</td><td>0</td><td>0</td><td>307</td><td>82.2%</td><td class="zone-yellow">🟡</td></tr>
-<tr><td>Oct-26</td><td>307</td><td>0</td><td>0</td><td>0</td><td>307</td><td>82.2%</td><td class="zone-yellow">🟡</td></tr>
-</tbody>
+<tbody></tbody>
 </table>
 </div>
 <div class="card">
-<h2>Asia — Projection Detail</h2>
-<table>
+<h2>Asia — Monthly Breakdown</h2>
+<table id="tableAsia">
 <thead><tr><th>Month</th><th>Total</th><th>New</th><th>1mo</th><th>2mo</th><th>Ten.</th><th>Fulf.</th><th>Zone</th></tr></thead>
-<tbody>
-<tr><td>May-26</td><td>150</td><td>0</td><td>6</td><td>5</td><td>139</td><td>45.2%</td><td class="zone-red">🔴</td></tr>
-<tr><td>Jun-26</td><td>150</td><td>0</td><td>0</td><td>6</td><td>144</td><td>46.3%</td><td class="zone-red">🔴</td></tr>
-<tr><td>Jul-26</td><td>150</td><td>0</td><td>0</td><td>0</td><td>150</td><td>47.0%</td><td class="zone-red">🔴</td></tr>
-<tr><td>Aug-26</td><td>150</td><td>0</td><td>0</td><td>0</td><td>150</td><td>47.0%</td><td class="zone-red">🔴</td></tr>
-<tr><td>Sep-26</td><td>150</td><td>0</td><td>0</td><td>0</td><td>150</td><td>47.0%</td><td class="zone-red">🔴</td></tr>
-<tr><td>Oct-26</td><td>150</td><td>0</td><td>0</td><td>0</td><td>150</td><td>47.0%</td><td class="zone-red">🔴</td></tr>
-</tbody>
+<tbody></tbody>
 </table>
 </div>
 </div>
 
-<div class="card">
-<h2>Side-by-Side: Baseline vs Transfer Scenario</h2>
-<div class="chart-container"><canvas id="chartComparison"></canvas></div>
-</div>
-
-<div class="card">
-<h2>Key Takeaways</h2>
-<ul style="line-height:1.8; padding-left:1.2rem;">
-<li><strong>Germany clears 70%</strong> by June 2026 (month 2) and reaches 🟡 At-Risk / near 🟢 On-Track at ~82%.</li>
-<li><strong>Asia collapses to ~45–47%</strong> — well below the 70% critical threshold. This would trigger an escalation.</li>
-<li>The transferred workers start as "new hires" in Germany (low initial productivity), so <strong>May still stays below 70%</strong>. The benefit kicks in from June onward.</li>
-<li><strong>Net effect:</strong> You fix one factory but break the other. Consider a smaller transfer (e.g., 20–30) or net-new hiring to avoid devastating Asia.</li>
-</ul>
+<div class="card" style="font-size:0.85rem; color:#555;">
+<h2>Model Information</h2>
+<p><strong>Germany model:</strong> fulf = 0.0184×new + 0.0884×w1mo + 0.2065×w2mo + 0.2987×tenured − 9.498 (R²=0.946)</p>
+<p><strong>Asia model:</strong> fulf = 0.0077×new + 0.1611×w1mo + 0.2365×w2mo + 0.3592×tenured − 6.852 (R²=0.921)</p>
+<p style="margin-top:0.5rem;"><strong>Assumptions:</strong> Transferred workers arrive as new hires at the destination (need to learn local processes). They are removed from the source factory's tenured pool. No additional new hiring is assumed beyond the transfer.</p>
 </div>
 
 <script>
+// Model coefficients
+const modelA = { new: 0.018421, w1mo: 0.088393, w2mo: 0.206501, ten: 0.298668, intercept: -9.4982 };
+const modelB = { new: 0.007669, w1mo: 0.161093, w2mo: 0.236541, ten: 0.359181, intercept: -6.8519 };
+
+// April 2026 starting state
+const stateA = { new: 9, w1mo: 7, w2mo: 10, ten: 231 }; // total 257
+const stateB = { new: 6, w1mo: 5, w2mo: 6, ten: 183 };  // total 200
+
 const months = ['May-26','Jun-26','Jul-26','Aug-26','Sep-26','Oct-26'];
 
-// Germany chart
-const germanyBaseline = [64.72, 66.43, 67.26, 67.26, 67.26, 67.26];
-const germanyTransfer = [65.64, 70.85, 77.58, 82.19, 82.19, 82.19];
+function predict(model, n, w1, w2, t) {
+  return model.new * n + model.w1mo * w1 + model.w2mo * w2 + model.ten * t + model.intercept;
+}
 
-new Chart(document.getElementById('chartGermany'), {
-  type: 'line',
-  data: {
-    labels: months,
-    datasets: [
-      { label: 'Baseline (no transfer)', data: germanyBaseline, borderColor: '#94a3b8', borderDash: [5,4], fill: false, tension: 0.3, pointRadius: 4 },
-      { label: 'With +50 transfer', data: germanyTransfer, borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.08)', fill: true, tension: 0.3, pointRadius: 5, borderWidth: 3 },
-      { label: '70% Threshold', data: [70,70,70,70,70,70], borderColor: '#dc2626', borderDash: [3,3], borderWidth: 2, pointRadius: 0, fill: false },
-      { label: '85% On-Track', data: [85,85,85,85,85,85], borderColor: '#16a34a', borderDash: [3,3], borderWidth: 2, pointRadius: 0, fill: false }
-    ]
-  },
-  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, scales: { y: { min: 55, max: 90, title: { display: true, text: 'Fulfillment %' } } } }
-});
+function getZone(val) {
+  if (val >= 85) return { text: '🟢 On Track', cls: 'zone-green', tag: 'tag-green' };
+  if (val >= 70) return { text: '🟡 At Risk', cls: 'zone-yellow', tag: 'tag-yellow' };
+  return { text: '🔴 Critical', cls: 'zone-red', tag: 'tag-red' };
+}
 
-// Asia chart
-const asiaBaseline = [63.18, 64.25, 64.98, 64.98, 64.98, 64.98];
-const asiaTransfer = [45.22, 46.29, 47.03, 47.03, 47.03, 47.03];
+function simulate(transfer) {
+  // Positive = Asia -> Germany, Negative = Germany -> Asia
+  const resultsA = [];
+  const resultsB = [];
 
-new Chart(document.getElementById('chartAsia'), {
-  type: 'line',
-  data: {
-    labels: months,
-    datasets: [
-      { label: 'Baseline (no transfer)', data: asiaBaseline, borderColor: '#94a3b8', borderDash: [5,4], fill: false, tension: 0.3, pointRadius: 4 },
-      { label: 'After -50 transfer', data: asiaTransfer, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.08)', fill: true, tension: 0.3, pointRadius: 5, borderWidth: 3 },
-      { label: '70% Threshold', data: [70,70,70,70,70,70], borderColor: '#dc2626', borderDash: [3,3], borderWidth: 2, pointRadius: 0, fill: false }
-    ]
-  },
-  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, scales: { y: { min: 35, max: 75, title: { display: true, text: 'Fulfillment %' } } } }
-});
+  let a_new = stateA.new, a_1mo = stateA.w1mo, a_2mo = stateA.w2mo, a_ten = stateA.ten;
+  let b_new = stateB.new, b_1mo = stateB.w1mo, b_2mo = stateB.w2mo, b_ten = stateB.ten;
 
-// Combined comparison
-new Chart(document.getElementById('chartComparison'), {
-  type: 'bar',
-  data: {
-    labels: months,
-    datasets: [
-      { label: 'Germany (transfer)', data: germanyTransfer, backgroundColor: 'rgba(37,99,235,0.7)' },
-      { label: 'Germany (baseline)', data: germanyBaseline, backgroundColor: 'rgba(37,99,235,0.2)', borderColor: '#2563eb', borderWidth: 1 },
-      { label: 'Asia (transfer)', data: asiaTransfer, backgroundColor: 'rgba(245,158,11,0.7)' },
-      { label: 'Asia (baseline)', data: asiaBaseline, backgroundColor: 'rgba(245,158,11,0.2)', borderColor: '#f59e0b', borderWidth: 1 }
-    ]
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    plugins: {
-      legend: { position: 'bottom' },
-      annotation: {}
+  for (let i = 0; i < 6; i++) {
+    // Age cohorts
+    let na_ten = a_ten + a_2mo;
+    let na_2mo = a_1mo;
+    let na_1mo = a_new;
+    let na_new = 0;
+
+    let nb_ten = b_ten + b_2mo;
+    let nb_2mo = b_1mo;
+    let nb_1mo = b_new;
+    let nb_new = 0;
+
+    if (i === 0) {
+      if (transfer > 0) {
+        // Asia -> Germany: remove from Asia tenured, add as Germany new hires
+        na_new = transfer;
+        nb_ten = nb_ten - transfer;
+      } else if (transfer < 0) {
+        // Germany -> Asia: remove from Germany tenured, add as Asia new hires
+        nb_new = -transfer;
+        na_ten = na_ten - (-transfer);
+      }
+    }
+
+    // Clamp to avoid negatives
+    if (na_ten < 0) na_ten = 0;
+    if (nb_ten < 0) nb_ten = 0;
+
+    const predA = predict(modelA, na_new, na_1mo, na_2mo, na_ten);
+    const predB = predict(modelB, nb_new, nb_1mo, nb_2mo, nb_ten);
+    const totalA = na_new + na_1mo + na_2mo + na_ten;
+    const totalB = nb_new + nb_1mo + nb_2mo + nb_ten;
+
+    resultsA.push({ month: months[i], total: totalA, new: na_new, w1mo: na_1mo, w2mo: na_2mo, ten: na_ten, fulf: predA });
+    resultsB.push({ month: months[i], total: totalB, new: nb_new, w1mo: nb_1mo, w2mo: nb_2mo, ten: nb_ten, fulf: predB });
+
+    a_new = na_new; a_1mo = na_1mo; a_2mo = na_2mo; a_ten = na_ten;
+    b_new = nb_new; b_1mo = nb_1mo; b_2mo = nb_2mo; b_ten = nb_ten;
+  }
+  return { a: resultsA, b: resultsB };
+}
+
+let chartGermany, chartAsia;
+
+function initCharts() {
+  const ctxA = document.getElementById('chartGermany').getContext('2d');
+  const ctxB = document.getElementById('chartAsia').getContext('2d');
+
+  chartGermany = new Chart(ctxA, {
+    type: 'line',
+    data: {
+      labels: months,
+      datasets: [
+        { label: 'Germany Fulfillment', data: [], borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.08)', fill: true, tension: 0.3, pointRadius: 5, borderWidth: 3 },
+        { label: '70% Threshold', data: [70,70,70,70,70,70], borderColor: '#dc2626', borderDash: [4,4], borderWidth: 2, pointRadius: 0, fill: false },
+        { label: '85% On-Track', data: [85,85,85,85,85,85], borderColor: '#16a34a', borderDash: [4,4], borderWidth: 2, pointRadius: 0, fill: false }
+      ]
     },
-    scales: {
-      y: { min: 30, max: 90, title: { display: true, text: 'Fulfillment %' } }
-    }
-  },
-  plugins: [{
-    afterDraw: function(chart) {
-      const ctx = chart.ctx;
-      const yAxis = chart.scales.y;
-      const xAxis = chart.scales.x;
-      const y70 = yAxis.getPixelForValue(70);
-      ctx.save();
-      ctx.strokeStyle = '#dc2626';
-      ctx.lineWidth = 2;
-      ctx.setLineDash([6, 4]);
-      ctx.beginPath();
-      ctx.moveTo(xAxis.left, y70);
-      ctx.lineTo(xAxis.right, y70);
-      ctx.stroke();
-      ctx.fillStyle = '#dc2626';
-      ctx.font = '11px sans-serif';
-      ctx.fillText('70% threshold', xAxis.right - 80, y70 - 6);
-      ctx.restore();
-    }
-  }]
+    options: { responsive: true, maintainAspectRatio: false, animation: { duration: 300 }, plugins: { legend: { position: 'bottom' } }, scales: { y: { min: 40, max: 100, title: { display: true, text: 'Fulfillment %' } } } }
+  });
+
+  chartAsia = new Chart(ctxB, {
+    type: 'line',
+    data: {
+      labels: months,
+      datasets: [
+        { label: 'Asia Fulfillment', data: [], borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.08)', fill: true, tension: 0.3, pointRadius: 5, borderWidth: 3 },
+        { label: '70% Threshold', data: [70,70,70,70,70,70], borderColor: '#dc2626', borderDash: [4,4], borderWidth: 2, pointRadius: 0, fill: false },
+        { label: '85% On-Track', data: [85,85,85,85,85,85], borderColor: '#16a34a', borderDash: [4,4], borderWidth: 2, pointRadius: 0, fill: false }
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, animation: { duration: 300 }, plugins: { legend: { position: 'bottom' } }, scales: { y: { min: 30, max: 100, title: { display: true, text: 'Fulfillment %' } } } }
+  });
+}
+
+function updateUI(transfer) {
+  const { a, b } = simulate(transfer);
+
+  // Update charts
+  chartGermany.data.datasets[0].data = a.map(r => Math.round(r.fulf * 100) / 100);
+  chartGermany.update();
+  chartAsia.data.datasets[0].data = b.map(r => Math.round(r.fulf * 100) / 100);
+  chartAsia.update();
+
+  // Update KPIs (use plateau = last month)
+  const plateauA = a[5].fulf;
+  const plateauB = b[5].fulf;
+  const zoneA = getZone(plateauA);
+  const zoneB = getZone(plateauB);
+
+  document.getElementById('kpiGermanyHC').textContent = a[0].total;
+  document.getElementById('kpiGermanyFulf').textContent = plateauA.toFixed(1) + '%';
+  document.getElementById('kpiGermanyZone').textContent = zoneA.text;
+  document.getElementById('kpiGermanyZone').className = 'tag ' + zoneA.tag;
+
+  document.getElementById('kpiAsiaHC').textContent = b[0].total;
+  document.getElementById('kpiAsiaFulf').textContent = plateauB.toFixed(1) + '%';
+  document.getElementById('kpiAsiaZone').textContent = zoneB.text;
+  document.getElementById('kpiAsiaZone').className = 'tag ' + zoneB.tag;
+
+  // Update slider display
+  const absVal = Math.abs(transfer);
+  let valText = transfer.toString();
+  if (transfer > 0) valText = '+' + transfer + ' →🇩🇪';
+  else if (transfer < 0) valText = '+' + absVal + ' →🌏';
+  else valText = '0';
+  document.getElementById('sliderValue').textContent = valText;
+
+  // Direction note
+  const dirNote = document.getElementById('directionNote');
+  if (transfer > 0) dirNote.textContent = transfer + ' workers: Asia → Germany';
+  else if (transfer < 0) dirNote.textContent = absVal + ' workers: Germany → Asia';
+  else dirNote.textContent = 'No transfer';
+
+  // Alert box
+  const alertBox = document.getElementById('alertBox');
+  if (plateauA >= 70 && plateauB >= 70) {
+    alertBox.className = 'alert alert-green';
+    alertBox.innerHTML = '<strong>✅ Both factories above 70%!</strong> This transfer level keeps both factories at or above the minimum fulfillment threshold.';
+  } else if (plateauA >= 70 || plateauB >= 70) {
+    const bad = plateauA < 70 ? 'Germany' : 'Asia';
+    alertBox.className = 'alert alert-yellow';
+    alertBox.innerHTML = '<strong>⚠️ ' + bad + ' is below 70%.</strong> One factory benefits but the other suffers. Consider adjusting the transfer amount.';
+  } else {
+    alertBox.className = 'alert alert-red';
+    alertBox.innerHTML = '<strong>🔴 Both factories below 70%.</strong> Neither factory meets the minimum threshold at this configuration.';
+  }
+
+  // Tables
+  function renderTable(tableId, data) {
+    const tbody = document.querySelector('#' + tableId + ' tbody');
+    tbody.innerHTML = data.map(r => {
+      const z = getZone(r.fulf);
+      return '<tr><td>' + r.month + '</td><td>' + r.total + '</td><td>' + r.new + '</td><td>' + r.w1mo + '</td><td>' + r.w2mo + '</td><td>' + r.ten + '</td><td>' + r.fulf.toFixed(1) + '%</td><td class="' + z.cls + '">' + z.text + '</td></tr>';
+    }).join('');
+  }
+  renderTable('tableGermany', a);
+  renderTable('tableAsia', b);
+}
+
+// Initialize
+initCharts();
+updateUI(0);
+
+// Slider event
+document.getElementById('transferSlider').addEventListener('input', function() {
+  updateUI(parseInt(this.value));
 });
 </script>
 </body>
