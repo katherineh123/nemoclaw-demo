@@ -7,6 +7,37 @@
 
 ---
 
+## Demo Runtime & Publishing Contract
+
+For this hands-on demo, each OpenClaw sandbox is assigned exactly one GitHub Pages output folder. Before creating or publishing any visualization, load the sandbox runtime values:
+
+```bash
+set -a
+. /sandbox/.nemoclaw-demo/dashboard.env
+set +a
+mkdir -p "$DASHBOARD_OUTPUT_DIR"
+```
+
+The important values are:
+
+| Variable | Meaning |
+|---|---|
+| `EXEC_SANDBOX` | Your assigned demo identity, e.g. `exec-01`. |
+| `DASHBOARD_OUTPUT_DIR` | Local directory where you must write the static dashboard files. |
+| `DASHBOARD_PAGES_DIR/$EXEC_SANDBOX` | Your only allowed folder in the GitHub Pages repo, e.g. `docs/exec-01`. |
+| `DASHBOARD_URL` | The public GitHub Pages URL where your dashboard will appear. |
+| `DASHBOARD_PUBLISH_SCRIPT` | Helper script that clones the repo, copies your files into your assigned folder, commits, and pushes. |
+
+Build the dashboard as a static browser-only site in `DASHBOARD_OUTPUT_DIR`, with an `index.html` entry point. Keep all CSS, JavaScript, JSON, CSV, and generated assets inside that directory. When ready, publish it:
+
+```bash
+"$DASHBOARD_PUBLISH_SCRIPT"
+```
+
+Publishing to GitHub is what makes the dashboard viewable outside the VM: GitHub Pages serves the committed files at `DASHBOARD_URL`. Do not write directly into the cloned repo, and do not modify, delete, or inspect other executive folders under `DASHBOARD_PAGES_DIR`. Never print, copy, or commit files under `/sandbox/.nemoclaw-demo/`; the publish helper handles Git authentication automatically.
+
+---
+
 ## Overview
 
 This article documents how we measure and model the relationship between factory headcount and on-time delivery performance across our two manufacturing sites. It is the reference for supply chain analysts, operations managers, and any tooling or agents involved in factory performance analysis and reporting.
@@ -78,11 +109,12 @@ Projections should always be accompanied by a plain-language business summary â€
 All factory performance visualizations are published to our internal dashboard hosted on GitHub Pages. Visualizations must be self-contained HTML files (HTML + CSS + vanilla JS only â€” Plotly.js or Chart.js via CDN are acceptable). No server-side dependencies.
 
 **Publishing workflow:**
-1. New visualizations are added to the dashboard repo as individual HTML files (e.g. `viz1.html`, `viz2.html`)
-2. The repo's `index.html` is updated to link to each new visualization
-3. Changes are committed and pushed; GitHub Pages serves the update automatically
+1. Load `/sandbox/.nemoclaw-demo/dashboard.env` to identify the sandbox's assigned output directory and GitHub Pages folder.
+2. Build the visualization as a static site in `$DASHBOARD_OUTPUT_DIR`, with `index.html` as the entry point.
+3. Run `$DASHBOARD_PUBLISH_SCRIPT` to copy the site into `docs/$EXEC_SANDBOX`, commit, and push.
+4. GitHub Pages serves the update automatically at `$DASHBOARD_URL`.
 
 **Dashboard repo:** `https://github.com/katherineh123/nemoclaw-demo.git`
-On first use, fork this repo to create your working copy. Use `gh` and standard `git` CLI tools for all repo operations.
+Use the sandbox's assigned `docs/$EXEC_SANDBOX` folder only. Do not modify dashboard folders assigned to other executives.
 
 Color coding from the performance thresholds table above applies to all charts and visualizations without exception.
