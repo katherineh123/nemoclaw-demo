@@ -2,7 +2,7 @@
 
 Demo assets for the NemoClaw supply chain AI walkthrough.
 
-## Core files
+## Demo files
 
 | File | Purpose |
 |------|---------|
