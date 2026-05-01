@@ -3,233 +3,234 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Germany Factory - Delivery Performance Dashboard</title>
+    <title>Factory Transfer Scenario — Delivery Performance Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f1419; color: #e7e9ea; padding: 24px; }
-        h1 { text-align: center; margin-bottom: 8px; font-size: 1.6rem; }
-        .subtitle { text-align: center; color: #8899a6; margin-bottom: 32px; font-size: 0.95rem; }
-        .dashboard { max-width: 1100px; margin: 0 auto; }
+        h1 { text-align: center; margin-bottom: 6px; font-size: 1.5rem; }
+        .subtitle { text-align: center; color: #8899a6; margin-bottom: 28px; font-size: 0.9rem; }
+        .dashboard { max-width: 1200px; margin: 0 auto; }
         .chart-container { background: #1a2332; border-radius: 12px; padding: 24px; margin-bottom: 24px; }
-        .chart-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 16px; }
-        .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
-        .card { background: #1a2332; border-radius: 12px; padding: 20px; text-align: center; }
-        .card-value { font-size: 2rem; font-weight: 700; margin: 8px 0; }
-        .card-label { color: #8899a6; font-size: 0.85rem; }
+        .chart-title { font-size: 1.05rem; font-weight: 600; margin-bottom: 4px; }
+        .chart-subtitle { font-size: 0.82rem; color: #8899a6; margin-bottom: 16px; }
+        .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 24px; }
+        .card { background: #1a2332; border-radius: 12px; padding: 18px; text-align: center; }
+        .card-value { font-size: 1.8rem; font-weight: 700; margin: 6px 0; }
+        .card-label { color: #8899a6; font-size: 0.8rem; }
+        .card-tag { display: inline-block; font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; margin-top: 4px; }
         .critical { color: #f4212e; }
         .at-risk { color: #ffd400; }
         .on-track { color: #00ba7c; }
-        .threshold-note { text-align: center; color: #8899a6; font-size: 0.8rem; margin-top: 8px; }
-        .legend-custom { display: flex; justify-content: center; gap: 24px; margin-top: 12px; flex-wrap: wrap; }
-        .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: #8899a6; }
-        .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
-        canvas { max-height: 350px; }
+        .tag-critical { background: rgba(244,33,46,0.15); color: #f4212e; }
+        .tag-risk { background: rgba(255,212,0,0.15); color: #ffd400; }
+        .tag-ok { background: rgba(0,186,124,0.15); color: #00ba7c; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        @media (max-width: 800px) { .grid-2 { grid-template-columns: 1fr; } }
+        .section-header { font-size: 1.2rem; font-weight: 700; margin: 32px 0 16px; padding-left: 4px; border-left: 4px solid #1d9bf0; padding-left: 12px; }
+        .warning-box { background: rgba(244,33,46,0.08); border: 1px solid rgba(244,33,46,0.3); border-radius: 10px; padding: 16px 20px; margin-bottom: 24px; }
+        .warning-box h3 { color: #f4212e; font-size: 0.95rem; margin-bottom: 6px; }
+        .warning-box p { color: #ccd6dd; font-size: 0.85rem; line-height: 1.5; }
+        canvas { max-height: 300px; }
+        .legend-custom { display: flex; justify-content: center; gap: 20px; margin-top: 10px; flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.8rem; color: #8899a6; }
+        .legend-line { width: 20px; height: 3px; border-radius: 2px; }
+        .legend-dash { width: 20px; height: 0; border-top: 2px dashed; }
     </style>
 </head>
 <body>
     <div class="dashboard">
-        <h1>Germany Factory — Delivery Performance</h1>
-        <p class="subtitle">Headcount & On-Time Fulfillment Analysis | May 2024 – Oct 2026 (Projected)</p>
+        <h1>Transfer Scenario: Move 50 Workers Asia → Germany</h1>
+        <p class="subtitle">6-Month Projection | Both Factories | Current Pool: 450 workers</p>
 
         <div class="summary-cards">
             <div class="card">
-                <div class="card-label">Current Headcount</div>
-                <div class="card-value">257</div>
-                <div class="card-label">April 2026</div>
-            </div>
-            <div class="card">
-                <div class="card-label">Last Actual Fulfillment</div>
+                <div class="card-label">Germany Current</div>
                 <div class="card-value critical">62.6%</div>
-                <div class="card-label">April 2026 · Critical</div>
+                <div class="card-tag tag-critical">Critical</div>
             </div>
             <div class="card">
-                <div class="card-label">Next Month Projection</div>
-                <div class="card-value critical">64.7%</div>
-                <div class="card-label">May 2026 · Critical</div>
+                <div class="card-label">Germany w/ Transfer (plateau)</div>
+                <div class="card-value at-risk">82.2%</div>
+                <div class="card-tag tag-risk">At Risk → improving</div>
             </div>
             <div class="card">
-                <div class="card-label">6-Month Plateau</div>
-                <div class="card-value critical">67.3%</div>
-                <div class="card-label">Still below 70% target</div>
+                <div class="card-label">Asia Current</div>
+                <div class="card-value critical">60.7%</div>
+                <div class="card-tag tag-critical">Critical</div>
+            </div>
+            <div class="card">
+                <div class="card-label">Asia After Transfer (plateau)</div>
+                <div class="card-value critical">47.0%</div>
+                <div class="card-tag tag-critical">Critical ⚠️</div>
             </div>
         </div>
 
+        <div class="warning-box">
+            <h3>⚠️ Trade-off Warning</h3>
+            <p>Transferring 50 workers lifts Germany above 70% by Month 2 (reaching ~82% plateau), but <strong>devastates Asia's fulfillment</strong> — dropping it from ~65% to ~47%, deep into critical territory. The combined company fulfillment would decrease. Consider a smaller transfer or net new hiring.</p>
+        </div>
+
+        <div class="section-header">Germany Factory (Europe)</div>
+
         <div class="chart-container">
-            <div class="chart-title">On-Time Delivery Rate — Historical & Projected</div>
-            <canvas id="fulfillmentChart"></canvas>
+            <div class="chart-title">Germany — Fulfillment Projection</div>
+            <div class="chart-subtitle">Baseline (no change) vs. Scenario (+50 transfer from Asia)</div>
+            <canvas id="germanyChart"></canvas>
             <div class="legend-custom">
-                <div class="legend-item"><div class="legend-dot" style="background:#1d9bf0"></div> Actual</div>
-                <div class="legend-item"><div class="legend-dot" style="background:#ffd400; border: 2px dashed #ffd400;"></div> Projected</div>
-                <div class="legend-item"><div class="legend-dot" style="background:rgba(0,186,124,0.15); border:1px solid #00ba7c"></div> On Track (≥85%)</div>
-                <div class="legend-item"><div class="legend-dot" style="background:rgba(255,212,0,0.15); border:1px solid #ffd400"></div> At Risk (70–84%)</div>
-                <div class="legend-item"><div class="legend-dot" style="background:rgba(244,33,46,0.15); border:1px solid #f4212e"></div> Critical (&lt;70%)</div>
+                <div class="legend-item"><div class="legend-line" style="background:#1d9bf0"></div> Baseline</div>
+                <div class="legend-item"><div class="legend-dash" style="border-color:#00ba7c"></div> +50 Transfer</div>
+                <div class="legend-item"><div class="legend-line" style="background:rgba(255,212,0,0.5)"></div> 70% Target</div>
+            </div>
+        </div>
+
+        <div class="section-header">Asia Factory (Asia-Pacific)</div>
+
+        <div class="chart-container">
+            <div class="chart-title">Asia — Fulfillment Projection</div>
+            <div class="chart-subtitle">Baseline (no change) vs. Scenario (−50 tenured workers transferred out)</div>
+            <canvas id="asiaChart"></canvas>
+            <div class="legend-custom">
+                <div class="legend-item"><div class="legend-line" style="background:#1d9bf0"></div> Baseline</div>
+                <div class="legend-item"><div class="legend-dash" style="border-color:#f4212e"></div> −50 Transfer</div>
+                <div class="legend-item"><div class="legend-line" style="background:rgba(255,212,0,0.5)"></div> 70% Target</div>
+            </div>
+        </div>
+
+        <div class="section-header">Side-by-Side Comparison</div>
+
+        <div class="chart-container">
+            <div class="chart-title">Both Factories — Transfer Scenario</div>
+            <div class="chart-subtitle">Projected fulfillment with 50-worker transfer executed in May 2026</div>
+            <canvas id="combinedChart"></canvas>
+            <div class="legend-custom">
+                <div class="legend-item"><div class="legend-line" style="background:#00ba7c"></div> Germany (+50)</div>
+                <div class="legend-item"><div class="legend-line" style="background:#f4212e"></div> Asia (−50)</div>
+                <div class="legend-item"><div class="legend-line" style="background:rgba(255,212,0,0.5)"></div> 70% Target</div>
+                <div class="legend-item"><div class="legend-line" style="background:rgba(0,186,124,0.3)"></div> 85% On Track</div>
             </div>
         </div>
 
         <div class="chart-container">
-            <div class="chart-title">Headcount Composition Over Time</div>
-            <canvas id="headcountChart"></canvas>
-        </div>
-
-        <div class="chart-container">
-            <div class="chart-title">Model Backtest — Predicted vs Actual (Last 6 Months)</div>
-            <canvas id="backtestChart"></canvas>
-            <p class="threshold-note">Linear regression model · R² = 0.946 · Mean error ±0.22%</p>
+            <div class="chart-title">Headcount After Transfer</div>
+            <div class="chart-subtitle">Worker distribution at plateau (Aug–Oct 2026)</div>
+            <canvas id="headcountCompare"></canvas>
         </div>
     </div>
 
     <script>
-        const months = ['May 24','Jun 24','Jul 24','Aug 24','Sep 24','Oct 24','Nov 24','Dec 24','Jan 25','Feb 25','Mar 25','Apr 25','May 25','Jun 25','Jul 25','Aug 25','Sep 25','Oct 25','Nov 25','Dec 25','Jan 26','Feb 26','Mar 26','Apr 26'];
-        const projMonths = ['Apr 26','May 26','Jun 26','Jul 26','Aug 26','Sep 26','Oct 26'];
-        const allMonths = ['May 24','Jun 24','Jul 24','Aug 24','Sep 24','Oct 24','Nov 24','Dec 24','Jan 25','Feb 25','Mar 25','Apr 25','May 25','Jun 25','Jul 25','Aug 25','Sep 25','Oct 25','Nov 25','Dec 25','Jan 26','Feb 26','Mar 26','Apr 26','May 26','Jun 26','Jul 26','Aug 26','Sep 26','Oct 26'];
+        const projLabels = ['May 26','Jun 26','Jul 26','Aug 26','Sep 26','Oct 26'];
 
-        const actualData = [60.67,60.99,57.54,57.32,58.66,61.91,63.61,60.41,59.80,59.23,58.25,61.35,63.20,66.32,65.61,63.12,61.58,62.84,62.57,65.85,66.67,64.80,63.31,62.63];
-        const projData = [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,62.63,64.72,66.43,67.26,67.26,67.26,67.26];
-        const actualFull = [60.67,60.99,57.54,57.32,58.66,61.91,63.61,60.41,59.80,59.23,58.25,61.35,63.20,66.32,65.61,63.12,61.58,62.84,62.57,65.85,66.67,64.80,63.31,62.63,null,null,null,null,null,null];
+        const germanyBaseline = [64.72, 66.43, 67.26, 67.26, 67.26, 67.26];
+        const germanyTransfer = [65.64, 70.85, 77.58, 82.19, 82.19, 82.19];
+        const asiaBaseline = [63.18, 64.25, 64.98, 64.98, 64.98, 64.98];
+        const asiaTransfer = [45.22, 46.29, 47.03, 47.03, 47.03, 47.03];
 
-        // Fulfillment chart
-        const ctx1 = document.getElementById('fulfillmentChart').getContext('2d');
-        new Chart(ctx1, {
-            type: 'line',
-            data: {
-                labels: allMonths,
-                datasets: [
-                    {
-                        label: 'Actual Fulfillment',
-                        data: actualFull,
-                        borderColor: '#1d9bf0',
-                        backgroundColor: 'rgba(29,155,240,0.1)',
-                        borderWidth: 2.5,
-                        pointRadius: 3,
-                        pointBackgroundColor: '#1d9bf0',
-                        tension: 0.3,
-                        fill: false
-                    },
-                    {
-                        label: 'Projected',
-                        data: projData,
-                        borderColor: '#ffd400',
-                        borderDash: [6, 4],
-                        borderWidth: 2.5,
-                        pointRadius: 4,
-                        pointStyle: 'triangle',
-                        pointBackgroundColor: '#ffd400',
-                        tension: 0.3,
-                        fill: false
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { display: false },
-                    annotation: {}
-                },
-                scales: {
-                    y: {
-                        min: 50,
-                        max: 90,
-                        grid: { color: 'rgba(255,255,255,0.06)' },
-                        ticks: { color: '#8899a6', callback: v => v + '%' }
-                    },
-                    x: {
-                        grid: { color: 'rgba(255,255,255,0.04)' },
-                        ticks: { color: '#8899a6', maxRotation: 45 }
-                    }
+        const zonePlugin = {
+            id: 'zoneBackground',
+            beforeDraw: function(chart) {
+                const ctx = chart.ctx;
+                const yAxis = chart.scales.y;
+                const xAxis = chart.scales.x;
+                if (!yAxis || !xAxis) return;
+
+                const y85 = yAxis.getPixelForValue(85);
+                const y70 = yAxis.getPixelForValue(70);
+
+                ctx.save();
+                // On track
+                if (y85 >= yAxis.top) {
+                    ctx.fillStyle = 'rgba(0,186,124,0.04)';
+                    ctx.fillRect(xAxis.left, yAxis.top, xAxis.width, Math.max(0, y85 - yAxis.top));
                 }
-            },
-            plugins: [{
-                afterDraw: function(chart) {
-                    const ctx = chart.ctx;
-                    const yAxis = chart.scales.y;
-                    const xAxis = chart.scales.x;
+                // At risk
+                ctx.fillStyle = 'rgba(255,212,0,0.04)';
+                ctx.fillRect(xAxis.left, Math.max(y85, yAxis.top), xAxis.width, Math.max(0, y70 - Math.max(y85, yAxis.top)));
+                // Critical
+                ctx.fillStyle = 'rgba(244,33,46,0.04)';
+                ctx.fillRect(xAxis.left, y70, xAxis.width, Math.max(0, yAxis.bottom - y70));
 
-                    // 85% line
-                    const y85 = yAxis.getPixelForValue(85);
-                    ctx.save();
-                    ctx.fillStyle = 'rgba(0,186,124,0.06)';
-                    ctx.fillRect(xAxis.left, yAxis.top, xAxis.width, y85 - yAxis.top);
-                    ctx.strokeStyle = '#00ba7c';
-                    ctx.lineWidth = 1;
-                    ctx.setLineDash([4,4]);
-                    ctx.beginPath(); ctx.moveTo(xAxis.left, y85); ctx.lineTo(xAxis.right, y85); ctx.stroke();
+                // 70% line
+                ctx.strokeStyle = 'rgba(255,212,0,0.5)';
+                ctx.lineWidth = 1.5;
+                ctx.setLineDash([6,4]);
+                ctx.beginPath(); ctx.moveTo(xAxis.left, y70); ctx.lineTo(xAxis.right, y70); ctx.stroke();
 
-                    // 70% line
-                    const y70 = yAxis.getPixelForValue(70);
-                    ctx.fillStyle = 'rgba(255,212,0,0.06)';
-                    ctx.fillRect(xAxis.left, y85, xAxis.width, y70 - y85);
-                    ctx.strokeStyle = '#ffd400';
-                    ctx.beginPath(); ctx.moveTo(xAxis.left, y70); ctx.lineTo(xAxis.right, y70); ctx.stroke();
+                // 85% line
+                ctx.strokeStyle = 'rgba(0,186,124,0.3)';
+                ctx.beginPath(); ctx.moveTo(xAxis.left, y85); ctx.lineTo(xAxis.right, y85); ctx.stroke();
 
-                    // Critical zone
-                    ctx.fillStyle = 'rgba(244,33,46,0.04)';
-                    ctx.fillRect(xAxis.left, y70, xAxis.width, yAxis.bottom - y70);
-                    ctx.strokeStyle = '#f4212e';
-                    ctx.beginPath(); ctx.moveTo(xAxis.left, y70); ctx.lineTo(xAxis.right, y70); ctx.stroke();
-
-                    // Labels
-                    ctx.setLineDash([]);
-                    ctx.font = '11px sans-serif';
-                    ctx.fillStyle = '#00ba7c'; ctx.fillText('On Track ≥85%', xAxis.left + 8, y85 + 14);
-                    ctx.fillStyle = '#ffd400'; ctx.fillText('Target: 70%', xAxis.left + 8, y70 - 6);
-                    ctx.fillStyle = '#f4212e'; ctx.fillText('Critical <70%', xAxis.left + 8, y70 + 14);
-                    ctx.restore();
-                }
-            }]
-        });
-
-        // Headcount chart
-        const headcountData = {
-            new_hires: [9,10,6,42,6,7,9,8,8,10,42,10,9,8,6,9,7,40,6,7,8,10,7,9],
-            workers_1mo: [0,9,10,6,42,6,7,9,8,8,10,42,10,9,8,6,9,7,40,6,7,8,10,7],
-            workers_2mo: [8,0,9,10,6,42,6,7,9,8,8,10,42,10,9,8,6,9,7,40,6,7,8,10],
-            tenured: [232,228,217,213,211,205,234,228,225,220,218,216,213,244,242,237,233,229,226,222,248,241,234,231]
+                ctx.setLineDash([]);
+                ctx.font = '10px sans-serif';
+                ctx.fillStyle = '#ffd400'; ctx.fillText('70% Target', xAxis.right - 62, y70 - 5);
+                ctx.fillStyle = '#00ba7c'; if (y85 > yAxis.top + 10) ctx.fillText('85%', xAxis.right - 30, y85 - 5);
+                ctx.restore();
+            }
         };
 
-        const ctx2 = document.getElementById('headcountChart').getContext('2d');
-        new Chart(ctx2, {
-            type: 'bar',
-            data: {
-                labels: months,
-                datasets: [
-                    { label: 'Tenured (3mo+)', data: headcountData.tenured, backgroundColor: '#00ba7c', borderRadius: 2 },
-                    { label: '2 Months', data: headcountData.workers_2mo, backgroundColor: '#1d9bf0', borderRadius: 2 },
-                    { label: '1 Month', data: headcountData.workers_1mo, backgroundColor: '#ffd400', borderRadius: 2 },
-                    { label: 'New Hires', data: headcountData.new_hires, backgroundColor: '#f4212e', borderRadius: 2 }
-                ]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { labels: { color: '#8899a6' } } },
-                scales: {
-                    x: { stacked: true, grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#8899a6', maxRotation: 45 } },
-                    y: { stacked: true, grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#8899a6' }, title: { display: true, text: 'Workers', color: '#8899a6' } }
-                }
-            }
+        const commonScales = (min, max) => ({
+            y: { min, max, grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#8899a6', callback: v => v + '%' } },
+            x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#8899a6' } }
         });
 
-        // Backtest chart
-        const btMonths = ['Nov 25','Dec 25','Jan 26','Feb 26','Mar 26','Apr 26'];
-        const btActual = [62.57, 65.85, 66.67, 64.80, 63.31, 62.63];
-        const btPred = [63.09, 65.73, 66.58, 64.82, 63.05, 62.34];
+        // Germany chart
+        new Chart(document.getElementById('germanyChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: projLabels,
+                datasets: [
+                    { label: 'Baseline', data: germanyBaseline, borderColor: '#1d9bf0', borderWidth: 2.5, pointRadius: 4, pointBackgroundColor: '#1d9bf0', tension: 0.3, fill: false },
+                    { label: '+50 Transfer', data: germanyTransfer, borderColor: '#00ba7c', borderWidth: 2.5, borderDash: [6,3], pointRadius: 5, pointStyle: 'triangle', pointBackgroundColor: '#00ba7c', tension: 0.3, fill: false }
+                ]
+            },
+            options: { responsive: true, plugins: { legend: { display: false } }, scales: commonScales(55, 90) },
+            plugins: [zonePlugin]
+        });
 
-        const ctx3 = document.getElementById('backtestChart').getContext('2d');
-        new Chart(ctx3, {
+        // Asia chart
+        new Chart(document.getElementById('asiaChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: projLabels,
+                datasets: [
+                    { label: 'Baseline', data: asiaBaseline, borderColor: '#1d9bf0', borderWidth: 2.5, pointRadius: 4, pointBackgroundColor: '#1d9bf0', tension: 0.3, fill: false },
+                    { label: '-50 Transfer', data: asiaTransfer, borderColor: '#f4212e', borderWidth: 2.5, borderDash: [6,3], pointRadius: 5, pointStyle: 'triangle', pointBackgroundColor: '#f4212e', tension: 0.3, fill: false }
+                ]
+            },
+            options: { responsive: true, plugins: { legend: { display: false } }, scales: commonScales(40, 75) },
+            plugins: [zonePlugin]
+        });
+
+        // Combined chart
+        new Chart(document.getElementById('combinedChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: projLabels,
+                datasets: [
+                    { label: 'Germany (+50)', data: germanyTransfer, borderColor: '#00ba7c', borderWidth: 3, pointRadius: 5, pointBackgroundColor: '#00ba7c', tension: 0.3, fill: false },
+                    { label: 'Asia (-50)', data: asiaTransfer, borderColor: '#f4212e', borderWidth: 3, pointRadius: 5, pointBackgroundColor: '#f4212e', tension: 0.3, fill: false }
+                ]
+            },
+            options: { responsive: true, plugins: { legend: { display: false } }, scales: commonScales(40, 90) },
+            plugins: [zonePlugin]
+        });
+
+        // Headcount comparison bar
+        new Chart(document.getElementById('headcountCompare').getContext('2d'), {
             type: 'bar',
             data: {
-                labels: btMonths,
+                labels: ['Germany (Before)', 'Germany (After)', 'Asia (Before)', 'Asia (After)'],
                 datasets: [
-                    { label: 'Actual', data: btActual, backgroundColor: '#1d9bf0', borderRadius: 4 },
-                    { label: 'Predicted', data: btPred, backgroundColor: 'rgba(255,212,0,0.7)', borderRadius: 4 }
+                    { label: 'Tenured', data: [231, 307, 183, 150], backgroundColor: '#00ba7c', borderRadius: 3 },
+                    { label: 'Ramping (0-2mo)', data: [26, 0, 17, 0], backgroundColor: '#ffd400', borderRadius: 3 }
                 ]
             },
             options: {
                 responsive: true,
                 plugins: { legend: { labels: { color: '#8899a6' } } },
                 scales: {
-                    x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#8899a6' } },
-                    y: { min: 58, max: 70, grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#8899a6', callback: v => v + '%' } }
+                    x: { stacked: true, grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#8899a6' } },
+                    y: { stacked: true, grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#8899a6' }, title: { display: true, text: 'Workers', color: '#8899a6' } }
                 }
             }
         });
