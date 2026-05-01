@@ -157,14 +157,8 @@
 
 
     <p>
-      For today's demo, factory data is stored in a GitHub repository. When you reference it in your prompt, NemoClaw uses <code>git clone</code> to pull the data directly into its working environment — no manual downloads or uploads needed.
+      For today's demo, factory data is stored in a GitHub repository. When you reference it in your prompt, NemoClaw uses Github's CLI (<code>git clone</code>) to pull the data directly into its working environment. It then writes updated content directly back to Github so you can see changes in real time— no manual downloads or uploads needed.
     </p>
-
-    <div class="card">
-      <h3>GitHub also hosts websites</h3>
-      <p>GitHub isn't just for storing code — it can also serve HTML files as live websites through a feature called <strong>GitHub Pages</strong>. Any HTML file pushed to the repository automatically becomes a publicly accessible web page within about 20 seconds.</p>
-      <p style="margin-top:8px;">This is how the visualizations in this demo work end-to-end: NemoClaw generates the chart as an HTML file, commits it to the GitHub repo, and GitHub Pages serves it as a live website — all without any separate hosting infrastructure. The same connection the agent uses to read data is the connection it uses to publish results.</p>
-    </div>
   </div>
 
   <hr class="divider">
