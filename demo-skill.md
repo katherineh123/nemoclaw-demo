@@ -26,15 +26,35 @@ The important values are:
 | `DASHBOARD_OUTPUT_DIR` | Local directory where you must write the static dashboard files. |
 | `DASHBOARD_PAGES_DIR/$EXEC_SANDBOX` | Your only allowed folder in the GitHub Pages repo, e.g. `docs/exec-01`. |
 | `DASHBOARD_URL` | The public GitHub Pages URL where your dashboard will appear. |
-| `DASHBOARD_PUBLISH_SCRIPT` | Helper script that clones the repo, copies your files into your assigned folder, commits, and pushes. |
+| `DASHBOARD_REPO_URL` | GitHub repo URL for the dashboard site. Git credentials are already configured. |
+| `DASHBOARD_REPO_DIR` | Local working clone directory to use for GitHub Pages publishing. |
 
-Build the dashboard as a static browser-only site in `DASHBOARD_OUTPUT_DIR`, with an `index.html` entry point. Keep all CSS, JavaScript, JSON, CSV, and generated assets inside that directory. When ready, publish it:
+Build the dashboard as a static browser-only site in `DASHBOARD_OUTPUT_DIR`, with an `index.html` entry point. Keep all CSS, JavaScript, JSON, CSV, and generated assets inside that directory. When ready, publish it with normal `git` commands:
 
 ```bash
-"$DASHBOARD_PUBLISH_SCRIPT"
+if [ ! -d "$DASHBOARD_REPO_DIR/.git" ]; then
+  git clone --branch "$DASHBOARD_REPO_BRANCH" "$DASHBOARD_REPO_URL" "$DASHBOARD_REPO_DIR" || git clone "$DASHBOARD_REPO_URL" "$DASHBOARD_REPO_DIR"
+fi
+cd "$DASHBOARD_REPO_DIR"
+git fetch origin "$DASHBOARD_REPO_BRANCH"
+git checkout "$DASHBOARD_REPO_BRANCH" 2>/dev/null || git checkout -b "$DASHBOARD_REPO_BRANCH" "origin/$DASHBOARD_REPO_BRANCH"
+git pull --rebase origin "$DASHBOARD_REPO_BRANCH"
+target="$DASHBOARD_PAGES_DIR/$EXEC_SANDBOX"
+mkdir -p "$target"
+find "$target" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+cp -R "$DASHBOARD_OUTPUT_DIR"/. "$target"/
+touch "$DASHBOARD_PAGES_DIR/.nojekyll"
+git add "$DASHBOARD_PAGES_DIR/.nojekyll" "$target"
+if ! git diff --cached --quiet; then
+  git commit -m "Update $EXEC_SANDBOX dashboard"
+  git push origin "HEAD:$DASHBOARD_REPO_BRANCH" || {
+    git pull --rebase origin "$DASHBOARD_REPO_BRANCH"
+    git push origin "HEAD:$DASHBOARD_REPO_BRANCH"
+  }
+fi
 ```
 
-Publishing to GitHub is what makes the dashboard viewable outside the VM: GitHub Pages serves the committed files at `DASHBOARD_URL`. Do not write directly into the cloned repo, and do not modify, delete, or inspect other executive folders under `DASHBOARD_PAGES_DIR`. Never print, copy, or commit files under `/sandbox/.nemoclaw-demo/`; the publish helper handles Git authentication automatically.
+Publishing to GitHub is what makes the dashboard viewable outside the VM: GitHub Pages serves the committed files at `DASHBOARD_URL`. Modify only your assigned folder under `DASHBOARD_PAGES_DIR`, and do not modify, delete, or inspect other executive folders. Never print, copy, or commit files under `/sandbox/.nemoclaw-demo/`; Git authentication is already configured there.
 
 ---
 
@@ -111,8 +131,9 @@ All factory performance visualizations are published to our internal dashboard h
 **Publishing workflow:**
 1. Load `/sandbox/.nemoclaw-demo/dashboard.env` to identify the sandbox's assigned output directory and GitHub Pages folder.
 2. Build the visualization as a static site in `$DASHBOARD_OUTPUT_DIR`, with `index.html` as the entry point.
-3. Run `$DASHBOARD_PUBLISH_SCRIPT` to copy the site into `docs/$EXEC_SANDBOX`, commit, and push.
-4. GitHub Pages serves the update automatically at `$DASHBOARD_URL`.
+3. Clone or update `$DASHBOARD_REPO_URL` in `$DASHBOARD_REPO_DIR`.
+4. Copy the static site into `docs/$EXEC_SANDBOX`, commit that folder, and push to `$DASHBOARD_REPO_BRANCH`.
+5. GitHub Pages serves the update automatically at `$DASHBOARD_URL`.
 
 **Dashboard repo:** `https://github.com/katherineh123/nemoclaw-demo.git`
 Use the sandbox's assigned `docs/$EXEC_SANDBOX` folder only. Do not modify dashboard folders assigned to other executives.
