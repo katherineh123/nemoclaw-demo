@@ -105,7 +105,6 @@
 <div class="hero">
   <div class="eyebrow">Supply Chain AI Demo</div>
   <h1>Getting Started with NemoClaw</h1>
-  <p>A quick orientation for using an AI coding agent to analyze real factory data — no technical background needed.</p>
 </div>
 
 <div class="content">
@@ -156,13 +155,6 @@
       NemoClaw can pull data from a wide range of sources — not just files on the VM, but cloud drives, databases, code repositories, and more. It does this through <strong>data connectors</strong>: command-line tools (CLIs) that the agent can use to reach out and retrieve data just like a developer would.
     </p>
 
-    <div class="connectors">
-      <div class="connector-pill"><span class="icon">🐙</span> GitHub CLI — code &amp; data repos</div>
-      <div class="connector-pill"><span class="icon">📁</span> Google Drive CLI — shared files &amp; spreadsheets</div>
-      <div class="connector-pill"><span class="icon">📂</span> git clone — version-controlled datasets</div>
-      <div class="connector-pill"><span class="icon">🗄️</span> Database connectors — SQL, data warehouses</div>
-      <div class="connector-pill"><span class="icon">☁️</span> Cloud storage — S3, Azure Blob, GCS</div>
-    </div>
 
     <p>
       For today's demo, factory data is stored in a GitHub repository. When you reference it in your prompt, NemoClaw uses <code>git clone</code> to pull the data directly into its working environment — no manual downloads or uploads needed.
@@ -206,18 +198,27 @@
 
     <p>Here's a sample of what the data looks like:</p>
 
-    <div class="csv-block">
-      <span class="csv-header">month,factory,total_headcount,new_hires,workers_1mo,workers_2mo,tenured,fulfillment_pct</span>
-2024-05-01,Factory A (Europe),249,9,0,8,232,60.67
-2024-06-01,Factory A (Europe),247,10,9,0,228,60.99
-2024-07-01,Factory A (Europe),242,6,10,9,217,57.54
-2024-08-01,Factory A (Europe),271,42,6,10,213,57.32
-2024-09-01,Factory A (Europe),265,6,42,6,211,58.66
-    </div>
-
-    <p style="font-size:0.85rem; color:#666;">
-      Notice how August had a big hiring surge (42 new hires) — but fulfillment didn't improve immediately, because those workers need time to ramp up. That's exactly the kind of pattern NemoClaw will find on its own.
-    </p>
+    <table class="data-table" style="margin-top:12px;">
+      <thead>
+        <tr>
+          <th>Month</th>
+          <th>Factory</th>
+          <th>Total HC</th>
+          <th>New Hires</th>
+          <th>1mo</th>
+          <th>2mo</th>
+          <th>Tenured</th>
+          <th>Fulfillment %</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>2024-05</td><td>Factory A (Europe)</td><td>249</td><td>9</td><td>0</td><td>8</td><td>232</td><td>60.67%</td></tr>
+        <tr><td>2024-06</td><td>Factory A (Europe)</td><td>247</td><td>10</td><td>9</td><td>0</td><td>228</td><td>60.99%</td></tr>
+        <tr><td>2024-07</td><td>Factory A (Europe)</td><td>242</td><td>6</td><td>10</td><td>9</td><td>217</td><td>57.54%</td></tr>
+        <tr><td>2024-08</td><td>Factory A (Europe)</td><td>271</td><td>42</td><td>6</td><td>10</td><td>213</td><td>57.32%</td></tr>
+        <tr><td>2024-09</td><td>Factory A (Europe)</td><td>265</td><td>6</td><td>42</td><td>6</td><td>211</td><td>58.66%</td></tr>
+      </tbody>
+    </table>
   </div>
 
   <hr class="divider">
@@ -226,13 +227,9 @@
   <div class="section">
     <div class="section-label">Domain Knowledge</div>
     <h2>How the agent learns about your company</h2>
-    <p>
-      AI models are general-purpose — they don't know your factories, your KPIs, or how you define on-time delivery. To give the agent that context, you simply point it to documentation and ask it to read before it starts. Just like a new hire reads an onboarding wiki before their first project.
-    </p>
-
     <div class="card" style="margin-top:16px;">
       <h3>Company documentation</h3>
-      <p>Any internal doc works — a Confluence page, a SharePoint file, a markdown file in a repo. You tell the agent where to find it, and it reads the full thing before proceeding. The agent uses that context to interpret your data correctly: right metric names, right thresholds, right business logic.</p>
+      <p>AI models are general-purpose — they don't know your factories, your KPIs, or how you define on-time delivery. To give the agent that context, you simply point it to documentation and ask it to read before it starts, just like a new hire reads an onboarding wiki before their first project. Unlike a new hire who might click through pages in a browser, your agent will access it directly via CLI — pulling the file from wherever it lives and reading it in full before proceeding.</p>
     </div>
 
     <div class="card">
@@ -249,7 +246,7 @@
     <div class="section-label">Your turn</div>
     <h2>Try your first prompt</h2>
     <p>
-      Open your NemoClaw session and type the prompt below exactly as written. NemoClaw will locate the data, analyze it, fit a model, and tell you where Germany's on-time delivery rate is headed — without you writing a single line of code.
+      Open your NemoClaw session and type the prompt below exactly as written. NemoClaw will locate the data, analyze it, write a mathematical formula that predicts future factory output, and tell you where Germany's on-time delivery rate is headed. All you have to do is describe the outcome you want to reach — due to its exceptional autonomy, the agent figures out the code and technicalities in between.
     </p>
 
     <div class="prompt-box">
