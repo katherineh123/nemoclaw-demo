@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Factory Headcount Transfer Simulator</title>
+<title>🐱 Factory Headcount Transfer Simulator</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
 <style>
@@ -56,7 +56,7 @@
 <body>
 
 <div class="header">
-  <h1>🔄 Factory Headcount Transfer Simulator</h1>
+  <h1>🐱 Factory Headcount Transfer Simulator</h1>
   <p>Drag the slider to move workers between Asia and Germany &bull; 6-month projection from May 2026</p>
 </div>
 
@@ -176,18 +176,32 @@ function update(transfer) {
   const asT = simulate(AS_START, AS, 0, transfer);
   const asB = simulate(AS_START, AS, 0, 0);
 
-  // Update charts
+  // Update charts with segment coloring based on zone
+  const deColors = deT.map(d => d.pred>=85?'#2a9d8f':d.pred>=70?'#f4a261':'#e63946');
+  const deBgColors = deT.map(d => d.pred>=85?'rgba(42,157,143,0.15)':d.pred>=70?'rgba(244,162,97,0.15)':'rgba(230,57,70,0.15)');
   deChart.data.datasets[0].data = deT.map(d=>d.pred);
+  deChart.data.datasets[0].segment = {borderColor: ctx => deColors[ctx.p1DataIndex], backgroundColor: ctx => deBgColors[ctx.p1DataIndex]};
+  deChart.data.datasets[0].borderColor = deColors[0];
+  deChart.data.datasets[0].pointBackgroundColor = deColors;
+  deChart.data.datasets[0].pointBorderColor = deColors;
   deChart.data.datasets[1].data = deB.map(d=>d.pred);
   deChart.update();
 
+  const asColors = asT.map(d => d.pred>=85?'#2a9d8f':d.pred>=70?'#f4a261':'#e63946');
+  const asBgColors = asT.map(d => d.pred>=85?'rgba(42,157,143,0.15)':d.pred>=70?'rgba(244,162,97,0.15)':'rgba(230,57,70,0.15)');
   asChart.data.datasets[0].data = asT.map(d=>d.pred);
+  asChart.data.datasets[0].segment = {borderColor: ctx => asColors[ctx.p1DataIndex], backgroundColor: ctx => asBgColors[ctx.p1DataIndex]};
+  asChart.data.datasets[0].borderColor = asColors[0];
+  asChart.data.datasets[0].pointBackgroundColor = asColors;
+  asChart.data.datasets[0].pointBorderColor = asColors;
   asChart.data.datasets[1].data = asB.map(d=>d.pred);
   asChart.update();
 
   compareChart.data.datasets[0].data = deT.map(d=>d.pred);
+  compareChart.data.datasets[0].backgroundColor = deT.map(d => d.pred>=85?'rgba(42,157,143,0.8)':d.pred>=70?'rgba(244,162,97,0.8)':'rgba(230,57,70,0.8)');
   compareChart.data.datasets[1].data = deB.map(d=>d.pred);
   compareChart.data.datasets[2].data = asT.map(d=>d.pred);
+  compareChart.data.datasets[2].backgroundColor = asT.map(d => d.pred>=85?'rgba(42,157,143,0.8)':d.pred>=70?'rgba(244,162,97,0.8)':'rgba(230,57,70,0.8)');
   compareChart.data.datasets[3].data = asB.map(d=>d.pred);
   compareChart.update();
 
