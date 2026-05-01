@@ -2171,20 +2171,21 @@ PY
 
 rm -f "$workspace/publish_dashboard.sh" "$demo_dir/github-token" "$demo_dir/git-askpass.sh"
 
-gitconfig=/sandbox/.gitconfig
 repo_host="$(printf '%s\n' "$repo_url" | sed -E 's#^[A-Za-z][A-Za-z0-9+.-]*://([^/]+)/.*#\1#')"
 [ -n "$repo_host" ] || repo_host=github.com
 printf 'https://x-access-token:openshell%%3Aresolve%%3Aenv%%3AGITHUB_TOKEN@%s\n' "$repo_host" > "$cred_file"
-touch "$gitconfig"
-git config --file "$gitconfig" user.name "$author_name"
-git config --file "$gitconfig" user.email "$author_email"
-git config --file "$gitconfig" credential.helper "store --file $cred_file"
-git config --file "$gitconfig" credential.useHttpPath false
-git config --file "$gitconfig" --add safe.directory "$workspace/github-pages-dashboard" 2>/dev/null || true
+for gitconfig in /sandbox/.gitconfig /tmp/.gitconfig; do
+  touch "$gitconfig"
+  git config --file "$gitconfig" user.name "$author_name"
+  git config --file "$gitconfig" user.email "$author_email"
+  git config --file "$gitconfig" credential.helper "store --file $cred_file"
+  git config --file "$gitconfig" credential.useHttpPath false
+  git config --file "$gitconfig" --add safe.directory "$workspace/github-pages-dashboard" 2>/dev/null || true
+done
 chmod 700 "$demo_dir"
-chmod 600 "$demo_dir/dashboard.env" "$gitconfig" "$cred_file" 2>/dev/null || true
+chmod 600 "$demo_dir/dashboard.env" /sandbox/.gitconfig /tmp/.gitconfig "$cred_file" 2>/dev/null || true
 chown -R sandbox:sandbox "$demo_dir" 2>/dev/null || true
-chown sandbox:sandbox "$gitconfig" 2>/dev/null || true
+chown sandbox:sandbox /sandbox/.gitconfig /tmp/.gitconfig 2>/dev/null || true
 REMOTE
 }
 
