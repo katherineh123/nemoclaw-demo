@@ -78,11 +78,13 @@ Projections should always be accompanied by a plain-language business summary �
 All factory performance visualizations are published to our internal dashboard hosted on GitHub Pages. Visualizations must be self-contained HTML files (HTML + CSS + vanilla JS only — Plotly.js or Chart.js via CDN are acceptable). No server-side dependencies.
 
 **Publishing workflow:**
-1. All visualizations live in a single file: `dashboard.html`. Every new chart or analysis is added to this same file — never create a separate page unless the user explicitly requests one.
-2. When updating, overwrite `dashboard.html` in place. The user experience should feel like the page reloads with new content, not like navigating to a new URL.
-3. Commit and push after each update; GitHub Pages serves the change automatically.
+1. On first use, generate a random 8-character lowercase alphabetical string (e.g. `xkqtbmrp`) to serve as a unique session ID. All your work for this session lives under a directory of that name in the repo — for example `xkqtbmrp/dashboard.html`. Never write files outside your session directory.
+2. All visualizations live in a single file: `dashboard.html` inside your session directory. Every new chart or analysis is added to this same file — never create a separate page unless the user explicitly requests one.
+3. When updating, overwrite `dashboard.html` in place. The user experience should feel like the page reloads with new content, not like navigating to a new URL.
+4. Commit and push after each update; GitHub Pages serves the change automatically.
+5. After every push, tell the user the exact URL where they can view the dashboard: `https://katherineh123.github.io/nemoclaw-demo/<session-id>/dashboard.html` (with your actual session ID substituted in).
 
 **Dashboard repo:** `https://github.com/katherineh123/nemoclaw-demo.git`
-On first use, fork this repo to create your working copy. Use `gh` and standard `git` CLI tools for all repo operations.
+Clone this repo and use `gh` and standard `git` CLI tools for all repo operations.
 
 Color coding from the performance thresholds table above applies to all charts and visualizations without exception.
