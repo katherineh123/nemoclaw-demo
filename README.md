@@ -9,6 +9,7 @@ Demo assets for the NemoClaw supply chain AI walkthrough.
 | `factory-delivery-data.csv` | 24 months of monthly headcount and on-time delivery data for two factories (Germany / Asia). This is the raw data the agent pulls and analyzes. |
 | `enterprise-knowledge-base.md` | Company knowledge base / skill document. Describes the factories, performance thresholds, forecasting methodology, and publishing standards - all in plain language. The agent reads this before starting work to understand the business context. |
 | `instructions.html` | Step-by-step demo guide for participants. Explains NemoClaw, data connectors, and walks through all four prompts with "what to expect" notes. |
+| `scripts/setup_exec_demo.sh` | Fresh-VM setup/reset script for the NemoClaw executive demo. It installs dependencies, prompts for credentials, creates isolated OpenClaw sandboxes, and prints each executive's links. |
 
 ## Secrets
 
