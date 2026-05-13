@@ -1,0 +1,61 @@
+# nemoclaw-demo
+
+This demo will provision Openclaws to participants via a unique URL. Participants will be able to interact with their own Openclaw live, without any additional setup.
+
+## Supported OS
+- MacOS
+- Linux
+
+Note: These are the supported OS that the demo host must use. Demo *participants* can run on any OS. 
+
+## How to set up the demo
+Read all 6 steps before starting to do the steps, if you are setting this up for a demo including participants other than yourself. All demo participants will have write access to the GitHub repo via the PAT. To avoid risk to your main account, consider creating a dedicated account for the demo.
+
+1. **Fork the repo** — fork the repo [https://github.com/katherineh123/nemoclaw-demo](https://github.com/katherineh123/nemoclaw-demo/tree/main).
+2. **Update the repo link in the instructions** — in `enterprise-knowledge-base.md` and in the Prompt 1 text inside `instructions.html`, replace the repo URL with your fork's URL.
+3. **Create a Brev instance** — provision a instance with 48 CPUs and 192 GiB RAM. (This is enough for 15 participants to run concurrent openclaws, you can adjust resources up or down for your use case). Follow the brev commands on the brev launch page to ssh into your VM.
+4. **Run the setup script** — Clone the repo inside of your brev instance, and then run the setup script (`sudo bash setup_exec_demo.sh`). It provisions N isolated OpenShell sandboxes, each with NemoClaw inside.
+   The script pins NemoClaw to `v0.0.35` by default so upstream NemoClaw releases do not affect the demo.
+5. **Enter credentials when prompted** — the script will ask for:
+   - NVIDIA `build.nvidia.com` API key. This key grants access to an LLM. To get a key, create an account at build.nvidia.com, navigate to any model such as [this](https://build.nvidia.com/nvidia/nemotron-3-super-120b-a12b) one, click "View Code" (top right) > "Generate API Key".
+   - Brave Search API key. Create a key at brave.com. Brave grants $5 of free credits.
+   - GitHub Personal Access Token (PAT) of the Github account that the forked repo resides in
+   - URL of the forked repo
+   - OpenClaw URL mode: `custom-domain` for a Cloudflare named tunnel on your own domain, or `quick-tunnel` for random `trycloudflare.com` URLs. Suggest to try with quick-tunnel first because it requires no additional setup.
+   - Cloudflare domain name, if you choose `custom-domain`
+6. **Important note on GitHub access** — **demo participants will have write access to the GitHub repo via the PAT. To avoid risk to your main account, consider creating a dedicated account for the demo.**
+
+
+## Secrets
+
+The NemoClaw demo setup script caches values on the VM for convenience. 
+
+Secret values (NVIDIA inference.nvidia.com key, Brave key, and GitHub PAT) are stored in **plaintext on the VM** at:
+
+```text
+~/.nemoclaw/exec-demo/secrets.tsv
+```
+
+Non-secret setup values like the Github fork's URL are cached separately on the VM at:
+
+```text
+~/.nemoclaw/exec-demo/env.tsv
+```
+
+Note that the cached secrets file is NOT directly readable by the OpenClaws. During demo
+startup, the setup script reads the saved values on the VM and injects the
+credentials through [OpenShell's](https://github.com/NVIDIA/OpenShell) provider/credential flow.
+
+
+## Demo files
+
+| File | Purpose |
+|------|---------|
+| `factory-delivery-data.csv` | 24 months of monthly headcount and on-time delivery data for two factories (Germany / Asia). This is the raw data the agent pulls and analyzes. |
+| `enterprise-knowledge-base.md` | Company knowledge base / skill document. Describes the factories, performance thresholds, forecasting methodology, and publishing standards - all in plain language. The agent reads this before starting work to understand the business context. |
+| `instructions.html` | Step-by-step demo guide for participants. Explains NemoClaw, data connectors, and walks through all four prompts with "what to expect" notes. |
+| `setup_exec_demo.sh` | Fresh-VM setup/reset script for the NemoClaw demo. It installs dependencies, prompts for credentials, creates isolated OpenClaw sandboxes, and prints each demo participant's links. |
+
+## Troubleshooting
+- **LLM Rate Limiting 429 errors:** the build.nvidia.com endpoint may throw 429 errors if too many participants access the endpoint at once. Errors should be intermittent and resolve on retry.
+- **Nemoclaw / Openshell version update errors:** Nemoclaw and Openshell are both early projects which a fast release cadence. New releases may break the demo script. Please reach out for questions/help if this is the case.
