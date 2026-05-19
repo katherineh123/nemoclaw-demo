@@ -13,7 +13,9 @@ See the **How to Set Up the Workshop** section below for guidance on how to prov
 
 
 ## How to Set Up the Workshop
-Read all 6 steps before starting to do the steps, if you are setting this up for a demo including participants other than yourself. All demo participants will have write access to the GitHub repo via the PAT. To avoid risk to your main account, consider creating a dedicated account for the demo. **Note that you must use either MacOS or Linux to host the workshop.** Workshop *participants* can use any OS. 
+If you are setting up this workshop for participants *other than yourself*, read all 6 steps first before starting to execute them. This is so you can understand the access permission sensitivities involved in this demo: all demo participants will have **write access** to the GitHub repo hosting the demo. To avoid risk to your Github account, consider creating a new account for the demo.
+
+**Also note: you must use either MacOS or Linux to host the workshop.** Workshop *participants* can use any OS. 
 
 1. **Fork the repo** — fork the repo [https://github.com/katherineh123/nemoclaw-demo](https://github.com/katherineh123/nemoclaw-demo/tree/main).
 2. **Update the repo link in the instructions** — in `enterprise-knowledge-base.md` and in the Prompt 1 text inside `instructions.html`, replace the repo URL with your fork's URL.
