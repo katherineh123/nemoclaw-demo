@@ -1,15 +1,19 @@
 # nemoclaw-demo
 
-This demo will provision Openclaws to participants via a unique URL. Participants will be able to interact with their own Openclaw live, without any additional setup.
+This demo will provision Nemoclaws to participants via a unique URL. Participants will be able to interact with their own Nemoclaw live, without any additional setup.
 
-## Supported OS
-- MacOS
-- Linux
+## Workshop Agenda
+1. [20 min] Introduce participants to Nemoclaw and Openshell using slidedecks from Highspot: [Nemoclaw](https://nvidia.highspot.com/items/69b86365d08c0af085ad7596?lfrm=srp.0#1), [Openshell](https://nvidia.highspot.com/items/69b843cc5be327c099292acb?lfrm=srp.0#1)
+2. [40 min] Start the hands-on workshop section
+   - Distribute unique URLs to each participant so they have their own Nemoclaw instance.
+   - Give participants the `instructions.html` page (included in this repo). This page is the main landing spot for the workshop. Talk through these instructions and have them follow along. This page has been hosted as a Github Page for convenience: [https://katherineh123.github.io/nemoclaw-demo/instructions.html](https://katherineh123.github.io/nemoclaw-demo/instructions.html)
+   - The instructions page will introduce concepts such as a corporate **knowledge base** and **enterprise data**. Participants will be able to gain a hands on understanding of these concepts by interacting with the `enterprise-knowledge-base.md` and `factory-delivery-data.csv` artifacts (included in this repo). **Give participants the links to these artifacts** so they can see the artifacts in their raw form. The instructions page provides a series of sample prompts for participants to try, which will demonstrate Nemoclaw automatically pulling in the artifacts and using them to solve real problems.
 
-Note: These are the supported OS that the demo host must use. Demo *participants* can run on any OS. 
+See the **How to Set Up the Workshop** section below for guidance on how to provision a Brev VM and set up the workshop. 
 
-## How to set up the demo
-Read all 6 steps before starting to do the steps, if you are setting this up for a demo including participants other than yourself. All demo participants will have write access to the GitHub repo via the PAT. To avoid risk to your main account, consider creating a dedicated account for the demo.
+
+## How to Set Up the Workshop
+Read all 6 steps before starting to do the steps, if you are setting this up for a demo including participants other than yourself. All demo participants will have write access to the GitHub repo via the PAT. To avoid risk to your main account, consider creating a dedicated account for the demo. **Note that you must use either MacOS or Linux to host the workshop.** Workshop *participants* can use any OS. 
 
 1. **Fork the repo** — fork the repo [https://github.com/katherineh123/nemoclaw-demo](https://github.com/katherineh123/nemoclaw-demo/tree/main).
 2. **Update the repo link in the instructions** — in `enterprise-knowledge-base.md` and in the Prompt 1 text inside `instructions.html`, replace the repo URL with your fork's URL.
@@ -24,6 +28,7 @@ Read all 6 steps before starting to do the steps, if you are setting this up for
    - OpenClaw URL mode: `custom-domain` for a Cloudflare named tunnel on your own domain, or `quick-tunnel` for random `trycloudflare.com` URLs. Suggest to try with quick-tunnel first because it requires no additional setup.
    - Cloudflare domain name, if you choose `custom-domain`
 6. **Important note on GitHub access** — **demo participants will have write access to the GitHub repo via the PAT. To avoid risk to your main account, consider creating a dedicated account for the demo.**
+
 
 
 ## Secrets
