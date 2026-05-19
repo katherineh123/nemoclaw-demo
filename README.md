@@ -1,11 +1,11 @@
 # nemoclaw-demo
 
-This demo will provision Nemoclaws to participants via a unique URL. Participants will be able to interact with their own Nemoclaw live, without any additional setup.
+This demo will provision Nemoclaws to participants via a unique URL. Participants will be able to interact with their own Nemoclaw live, without any additional setup. 
 
 ## Workshop Agenda
 1. [20 min] Introduce participants to Nemoclaw and Openshell using slidedecks from Highspot: [Nemoclaw](https://nvidia.highspot.com/items/69b86365d08c0af085ad7596?lfrm=srp.0#1), [Openshell](https://nvidia.highspot.com/items/69b843cc5be327c099292acb?lfrm=srp.0#1)
 2. [40 min] Start the hands-on workshop section
-   - Distribute unique URLs to each participant so they have their own Nemoclaw instance.
+   - Distribute unique URLs to each participant so they have their own Nemoclaw instance. (Note that you will *not* need to give participants access to a Brev launchable, they only need the URL. See below for how to set this up.)
    - Give participants the `instructions.html` page (included in this repo). This page is the main landing spot for the workshop. Talk through these instructions and have them follow along. This page has been hosted as a Github Page for convenience: [https://katherineh123.github.io/nemoclaw-demo/instructions.html](https://katherineh123.github.io/nemoclaw-demo/instructions.html)
    - The instructions page will introduce concepts such as a corporate **knowledge base** and **enterprise data**. Participants will be able to gain a hands on understanding of these concepts by interacting with the `enterprise-knowledge-base.md` and `factory-delivery-data.csv` artifacts (included in this repo). **Give participants the links to these artifacts** so they can see the artifacts in their raw form. The instructions page provides a series of sample prompts for participants to try, which will demonstrate Nemoclaw automatically pulling in the artifacts and using them to solve real problems.
 
