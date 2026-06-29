@@ -1,6 +1,6 @@
-# nemoclaw-demo
+# Nemoclaw Supply Chain Demo
 
-This demo will provision Nemoclaws to participants via a unique URL. Participants will be able to interact with their own Nemoclaw live, without any additional setup. 
+This demo will provision Nemoclaws to participants via a unique URL. Participants will be able to interact with their own Nemoclaw live, without any additional setup. Participants will walk through a guided use case and use Nemoclaw to assist them in answering supply chain related questions.
 
 ## Workshop Agenda
 1. [20 min] Introduce participants to Nemoclaw and Openshell using slidedecks from Highspot: [Nemoclaw](https://nvidia.highspot.com/items/69b86365d08c0af085ad7596?lfrm=srp.0#1), [Openshell](https://nvidia.highspot.com/items/69b843cc5be327c099292acb?lfrm=srp.0#1)
